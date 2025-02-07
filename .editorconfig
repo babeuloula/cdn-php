@@ -1,0 +1,16 @@
+# Require the plugin EditorConfig in your IDE: https://editorconfig.org/#download
+
+root = true # top-most EditorConfig file
+
+[*]
+end_of_line = lf # Unix-style newlines with a newline ending every file
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+charset = utf-8 # Set default charset
+
+[*.php]
+indent_size = 4 # http://www.php-fig.org/psr/psr-2/#indenting
+
+[Makefile]
+indent_style = tab

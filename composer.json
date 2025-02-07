@@ -1,0 +1,56 @@
+{
+    "name": "babeuloula/cdn-php",
+    "description": "A CDN written in PHP",
+    "type": "project",
+    "require": {
+        "php": ">=8.3",
+        "ext-imagick": "*",
+        "babeuloula/phpunit-coverage-checker": "^1.0",
+        "league/flysystem": "^3.29",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "league/glide": "^2.3",
+        "pimple/pimple": "^3.5",
+        "symfony/dotenv": "^7.2",
+        "symfony/error-handler": "^7.2",
+        "symfony/filesystem": "^7.2",
+        "symfony/http-foundation": "^7.2",
+        "symfony/string": "^7.2",
+        "symfony/translation-contracts": "^3.5"
+    },
+    "require-dev": {
+        "babeuloula/phpcs": "^1.5",
+        "league/flysystem-memory": "^3.29",
+        "phpmd/phpmd": "^2.15",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpunit/phpunit": "^11.5",
+        "symfony/var-dumper": "^7.2"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "BaBeuloula\\CdnPhp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BaBeuloula\\CdnPhp\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "BaBeuloula",
+            "email": "info@babeuloula.fr"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true,
+        "audit": {
+            "abandoned": "report"
+        }
+    }
+}

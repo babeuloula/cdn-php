@@ -1,0 +1,9 @@
+includes:
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+
+parameters:
+    tmpDir: .cache/phpstan
+    level: 8
+    paths:
+        - public
+        - src

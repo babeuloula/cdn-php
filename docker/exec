@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -e
+
+# This script allows you to run any command into the PHP container with your current user
+
+BASEDIR="$( cd "$( dirname "$0" )" && pwd )"
+DISABLE_TTY=${DISABLE_TTY:-0} # When running a php command inside a docker container with tty, the exit code will always be 129. Use DISABLE_TTY=1 .
+DOCKER_HOST=${DOCKER_HOST:-/var/run/docker.sock}
+DOCKER_COMPOSE=${DOCKER_COMPOSE:-docker compose}
+CONTAINER=${CONTAINER:-php}
+
+IS_DOCKER=0
+if [ -z "$CI" ] && [ -n "$(which $DOCKER_COMPOSE)" ]; then
+    IS_DOCKER=1
+fi
+
+if [ $# -eq 0 ]; then
+    set -- "bash"
+fi
+
+ENV=""
+if [ "$1" = "--env" ]; then
+    export $2
+    ENV="$1 $2"
+    shift 2
+fi
+
+if [ "$1" = "symfony" ]; then
+    shift 1
+    set -- bin/console "$@"
+fi
+
+if [ $IS_DOCKER -eq 0 ]; then
+    cd $(dirname ${BASEDIR})
+    "$@"
+    exit 0
+fi
+
+cd $BASEDIR
+
+EXEC_OR_RUN="run --rm --no-deps $ENV"
+if [ -n "$($DOCKER_COMPOSE ps -q --status running $CONTAINER 2> /dev/null)" ]; then
+  EXEC_OR_RUN="exec $ENV"
+fi
+
+if echo ${DOCKER_HOST} | grep unix:///run/user/ > /dev/null 2>&1; then
+    # Docker rootless
+    ${DOCKER_COMPOSE} $EXEC_OR_RUN $CONTAINER "$@"
+elif [ -t 1 -a 1 -ne "${DISABLE_TTY}" ]; then
+    if [ "$( uname )" = "Darwin" ]; then
+      # Mac OSX: osxfx automatically set perms to the current user
+      ${DOCKER_COMPOSE} $EXEC_OR_RUN $CONTAINER "$@"
+    else
+      # Default local env
+      ${DOCKER_COMPOSE} $EXEC_OR_RUN -u "$(id -u):$(id -g)" $CONTAINER "$@"
+    fi
+else
+    # CI and other runners
+    ${DOCKER_COMPOSE} $EXEC_OR_RUN -T $CONTAINER "$@"
+fi

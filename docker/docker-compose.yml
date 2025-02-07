@@ -1,0 +1,77 @@
+services:
+    # Reverse proxy for SSL certificates
+    nginx_proxy:
+        image: jwilder/nginx-proxy
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+            - ./proxy/config/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
+            - ./certificates/${HTTP_HOST}.pem:/etc/nginx/certs/${HTTP_HOST}.crt:ro
+            - ./certificates/${HTTP_HOST}.key:/etc/nginx/certs/${HTTP_HOST}.key:ro
+        restart: "no"
+        networks:
+            - cdn-php
+
+    nginx:
+        image: nginx:latest
+        environment:
+            VIRTUAL_HOST: ${HTTP_HOST}
+        volumes:
+            - ../public:/srv/public
+            - ./nginx/config/vhost.nginx:/etc/nginx/conf.d/default.conf:ro
+        restart: "no"
+        networks:
+            - cdn-php
+
+    # PHP Container for dev
+    php:
+        build:
+            context: .
+            dockerfile: ./php/Dockerfile
+            args:
+                # It's UID to have the same rights on your computer and your docker container
+                UID: "${DOCKER_UID}"
+                TZ: "${TZ}"
+        env_file:
+            - .env
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        volumes:
+            - ./php/config/upload.ini:/usr/local/etc/php/conf.d/upload.ini:ro
+            - ..:/srv
+        restart: "no"
+        networks:
+            - cdn-php
+
+    # Open-source S3
+    minio:
+        image: minio/minio
+        command: server --address ":9000" --console-address ":9001" /data
+        working_dir: /data
+        volumes:
+            - ../.cache/minio:/data
+        ports:
+            - "${MINIO_PORT:-9000}:9000"
+            - "${MINIO_CONSOLE_PORT:-9001}:9001"
+        environment:
+            MINIO_ROOT_USER: ${S3_ACCESS_ID}
+            MINIO_ROOT_PASSWORD: ${S3_ACCESS_SECRET}
+            MINIO_DOMAIN: monio.${HTTP_HOST}
+            MINIO_BROWSER_REDIRECT_URL: https://monio.${HTTP_HOST}
+            VIRTUAL_HOST: minio.${HTTP_HOST}
+            VIRTUAL_PORT: 9001
+        networks:
+            - cdn-php
+
+    minio_mc:
+        image: minio/mc
+        environment:
+            MC_HOST_local: http://${S3_ACCESS_ID}:${S3_ACCESS_SECRET}@minio:9000
+        networks:
+            - cdn-php
+
+networks:
+    cdn-php:
+        driver: bridge
