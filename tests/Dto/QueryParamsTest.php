@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace BaBeuloula\CdnPhp\Tests\Dto;
 
 use BaBeuloula\CdnPhp\Dto\QueryParams;
+use BaBeuloula\CdnPhp\Enum\WatermarkPosition;
 use BaBeuloula\CdnPhp\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -44,14 +45,16 @@ class QueryParamsTest extends TestCase
             [
                 'w' => 300,
                 'h' => 200,
-                'wu' => 'foo-url',
-                'ws' => 50,
-                'wo' => 50,
+                'mark' => 'example.com',
+                'markpos' => WatermarkPosition::default()->value,
+                'markw' => '50w',
+                'markpad' => '3w',
+                'markalpha' => 50,
                 'fit' => 'crop',
             ],
             QueryParams::fromArray(
                 [
-                    'wu' => 'foo-url',
+                    'wu' => 'http://example.com',
                     'ws' => 50,
                     'h' => 200,
                     'wo' => 50,
@@ -63,14 +66,16 @@ class QueryParamsTest extends TestCase
         static::assertEquals(
             [
                 'w' => 300,
-                'wu' => 'foo-url',
-                'ws' => 50,
-                'wo' => 50,
+                'mark' => 'example.com',
+                'markpos' => WatermarkPosition::default()->value,
+                'markw' => '50w',
+                'markpad' => '3w',
+                'markalpha' => 50,
                 'fit' => 'max',
             ],
             QueryParams::fromArray(
                 [
-                    'wu' => 'foo-url',
+                    'wu' => 'http://example.com',
                     'ws' => 50,
                     'wo' => 50,
                     'w' => 300,

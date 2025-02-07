@@ -15,6 +15,7 @@ It supports fetching, optimizing, caching and serving images dynamically while e
   - `w` (width)
   - `h` (height)
   - `wu` (watermark URL)
+  - `wp` (watermark position, default: center)
   - `ws` (watermark size percentage, default: 75%)
   - `wo` (watermark opacity percentage, default: 50%)
 - **Smart Storage Structure:** Images are stored based on query parameters.
@@ -121,7 +122,6 @@ make test
 
 ## Future works
 
-- [ ] Implement watermarks
 - [ ] Create a Dockerfile for serverless functions
 - [ ] Add a CLI with [Silly](https://github.com/mnapoli/silly)
   - [ ] Write a command to clear CDN cache folder
