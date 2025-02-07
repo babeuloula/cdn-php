@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace BaBeuloula\CdnPhp\Processor;
 
 use BaBeuloula\CdnPhp\Decoder\UriDecoder;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 final class PathProcessor
 {
@@ -48,6 +49,10 @@ final class PathProcessor
     {
         $params = $this->decoder->getParams()->toArray();
         unset($params['fit']);
+
+        if (true === \is_string($this->decoder->getParams()->watermarkUrl)) {
+            $params['mark'] = (new AsciiSlugger())->slug($this->decoder->getParams()->watermarkUrl)->toString();
+        }
 
         $path = $this->arrayMapAssoc(static fn ($k, $v) => "$k$v", $params);
 

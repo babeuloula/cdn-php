@@ -13,20 +13,24 @@ declare(strict_types=1);
 
 namespace BaBeuloula\CdnPhp\Dto;
 
-use Symfony\Component\String\Slugger\AsciiSlugger;
+use BaBeuloula\CdnPhp\Enum\WatermarkPosition;
 
 final class QueryParams
 {
+    public readonly ?string $watermarkUrl;
     public readonly int $watermarkSize;
     public readonly int $watermarkOpacity;
 
     private function __construct(
         public readonly ?int $width,
         public readonly ?int $height,
-        public readonly ?string $watermarkUrl,
+        ?string $watermarkUrl,
+        public readonly WatermarkPosition $watermarkPosition,
         int $watermarkSize,
         int $watermarkOpacity,
     ) {
+        $this->watermarkUrl = explode('://', (string) $watermarkUrl)[1] ?? null;
+
         if ($watermarkSize < 0) {
             $watermarkSize = 0;
         }
@@ -55,6 +59,7 @@ final class QueryParams
             empty($query['w']) ? null : ((int) $query['w']),
             empty($query['h']) ? null : ((int) $query['h']),
             empty($query['wu']) ? null : ((string) $query['wu']),
+            empty($query['wp']) ? WatermarkPosition::default() : (WatermarkPosition::tryFrom($query['wp']) ?? WatermarkPosition::default()),
             empty($query['ws']) ? 75 : ((int) $query['ws']),
             empty($query['wo']) ? 50 : ((int) $query['wo']),
         );
@@ -74,9 +79,11 @@ final class QueryParams
             $params = array_merge(
                 $params,
                 [
-                    'wu' => (new AsciiSlugger())->slug($this->watermarkUrl)->toString(),
-                    'ws' => $this->watermarkSize,
-                    'wo' => $this->watermarkOpacity,
+                    'mark' => $this->watermarkUrl,
+                    'markpos' => $this->watermarkPosition->value,
+                    'markw' => $this->watermarkSize . 'w',
+                    'markpad' => '3w',
+                    'markalpha' => $this->watermarkOpacity,
                 ],
             );
         }

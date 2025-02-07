@@ -14,14 +14,17 @@ declare(strict_types=1);
 namespace BaBeuloula\CdnPhp\Processor;
 
 use BaBeuloula\CdnPhp\Dto\QueryParams;
+use BaBeuloula\CdnPhp\Flysystem\Adapter\UrlFilesystemAdapter;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemAdapter;
 use League\Glide\ServerFactory;
 
 final class ImageProcessor
 {
-    public function __construct(private readonly FilesystemAdapter $adapter)
-    {
+    public function __construct(
+        private readonly FilesystemAdapter $adapter,
+        private readonly UrlFilesystemAdapter $urlFilesystemAdapter,
+    ) {
     }
 
     public function process(string $path, QueryParams $params): string
@@ -32,6 +35,7 @@ final class ImageProcessor
                 'source_path_prefix' => \dirname($path),
                 'cache' => new Filesystem($this->adapter),
                 'cache_path_prefix' => \dirname(\dirname($path)) . '/cache',
+                'watermarks' => new Filesystem($this->urlFilesystemAdapter),
                 'driver' => 'imagick',
             ],
         );

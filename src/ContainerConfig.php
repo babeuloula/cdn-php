@@ -15,6 +15,7 @@ namespace BaBeuloula\CdnPhp;
 
 use Aws\S3\S3Client;
 use BaBeuloula\CdnPhp\Cache\Cache;
+use BaBeuloula\CdnPhp\Flysystem\Adapter\UrlFilesystemAdapter;
 use BaBeuloula\CdnPhp\Processor\ImageProcessor;
 use BaBeuloula\CdnPhp\Storage\Storage;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
@@ -69,13 +70,19 @@ final class ContainerConfig extends Container
                 throw new \InvalidArgumentException("Unsupported storage driver '{$this['storage_driver']}'.");
         }
 
+        $this[UrlFilesystemAdapter::class] = static fn(self $c) => new UrlFilesystemAdapter(
+            $c[SymfonyFilesystem::class]
+        );
         $this[LeagueFilesystem::class] = static fn(self $c) => new LeagueFilesystem($c[FilesystemAdapter::class]);
         $this[Storage::class] = static fn (self $c) => new Storage(
             $c[LeagueFilesystem::class],
             $c[SymfonyFilesystem::class]
         );
 
-        $this[ImageProcessor::class] = static fn(self $c) => new ImageProcessor($c[FilesystemAdapter::class]);
+        $this[ImageProcessor::class] = static fn(self $c) => new ImageProcessor(
+            $c[FilesystemAdapter::class],
+            $c[UrlFilesystemAdapter::class]
+        );
 
         $this[Cache::class] = static fn(self $c) => new Cache($c[Storage::class], $c['cache_ttl']);
 

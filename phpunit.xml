@@ -24,6 +24,7 @@
             <directory>src</directory>
         </include>
         <exclude>
+            <file>src/Flysystem/Adapter/UrlFilesystemAdapter.php</file>
             <file>src/ContainerConfig.php</file>
         </exclude>
     </source>

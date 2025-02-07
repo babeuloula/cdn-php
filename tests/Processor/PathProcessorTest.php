@@ -18,7 +18,6 @@ use BaBeuloula\CdnPhp\Processor\PathProcessor;
 use BaBeuloula\CdnPhp\Tests\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class PathProcessorTest extends TestCase
 {
@@ -54,7 +53,7 @@ class PathProcessorTest extends TestCase
         yield ['w100', ['w' => 100]];
         yield ['h100', ['h' => 100]];
         yield [
-            'wu' . (new AsciiSlugger())->slug(static::TEST_WATERMARK_URL) . '/ws75/wo50',
+            'markexample-com-watermark-jpg/markposcenter/markw75w/markpad3w/markalpha50',
             ['wu' => static::TEST_WATERMARK_URL],
         ];
         yield ['', ['ws' => 50]];
