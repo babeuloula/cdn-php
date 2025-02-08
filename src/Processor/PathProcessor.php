@@ -48,21 +48,21 @@ final class PathProcessor
     private function generatePath(): void
     {
         $params = $this->decoder->getParams()->toArray();
-        unset($params['fit']);
+        unset($params['fit'], $params['markpad']);
 
         if (true === \is_string($this->decoder->getParams()->watermarkUrl)) {
             $params['mark'] = (new AsciiSlugger())->slug($this->decoder->getParams()->watermarkUrl)->toString();
         }
 
-        $path = $this->arrayMapAssoc(static fn ($k, $v) => "$k$v", $params);
+        $path = implode('/', $this->arrayMapAssoc(static fn ($k, $v) => "$k$v", $params));
 
         $extension = pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION);
         $filename = md5($this->decoder->getImageUrl()) . '.' . $extension;
 
         $this->path = sprintf(
-            '%s/%s/%s',
+            '%s%s/%s',
             $this->decoder->getDomain(),
-            implode('/', $path),
+            ('' === $path) ? '' : "/$path",
             $filename,
         );
     }

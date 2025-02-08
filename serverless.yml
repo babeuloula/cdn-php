@@ -8,10 +8,12 @@ params:
     prod:
         bucket_prefix: ''
         app_debug: 0
+        log_level: info
 
     dev:
         bucket_prefix: 'dev-'
         app_debug: 1
+        log_level: debug
 
 provider:
     name: aws
@@ -45,6 +47,8 @@ functions:
             S3_REGION: ${ssm:/cdn-php/s3-region}
             S3_ACCESS_KEY: ${ssm:/cdn-php/s3-access-key}
             S3_SECRET_KEY: ${ssm:/cdn-php/s3-secret-key}
+            LOG_STREAM: php://stderr
+            LOG_LEVEL: ${param:log_level}
 
 package:
     patterns:

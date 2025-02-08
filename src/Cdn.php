@@ -23,6 +23,7 @@ use BaBeuloula\CdnPhp\Exception\NotSupportedExtensionException;
 use BaBeuloula\CdnPhp\Processor\ImageProcessor;
 use BaBeuloula\CdnPhp\Processor\PathProcessor;
 use BaBeuloula\CdnPhp\Storage\Storage;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,7 +34,8 @@ final class Cdn
         private readonly array $allowedDomains,
         private readonly Storage $storage,
         private readonly ImageProcessor $imageProcessor,
-        private readonly Cache $cache
+        private readonly Cache $cache,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -71,6 +73,8 @@ final class Cdn
             $processedImage = $this->imageProcessor->process($originalPath, $decoder->getParams());
             $this->storage->save($cachedPath, $this->storage->read($processedImage));
         }
+
+        $this->logger->info('Serve the image: {cachedPath}', ['cachedPath' => $cachedPath]);
 
         return $this->cache->createResponse($cachedPath, $supportWebp, $request);
     }

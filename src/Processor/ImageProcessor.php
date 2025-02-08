@@ -18,12 +18,14 @@ use BaBeuloula\CdnPhp\Flysystem\Adapter\UrlFilesystemAdapter;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemAdapter;
 use League\Glide\ServerFactory;
+use Psr\Log\LoggerInterface;
 
 final class ImageProcessor
 {
     public function __construct(
         private readonly FilesystemAdapter $adapter,
         private readonly UrlFilesystemAdapter $urlFilesystemAdapter,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -38,6 +40,14 @@ final class ImageProcessor
                 'watermarks' => new Filesystem($this->urlFilesystemAdapter),
                 'driver' => 'imagick',
             ],
+        );
+
+        $this->logger->info(
+            'Process image: {path} with params {params}',
+            [
+                'path' => $path,
+                'params' => json_encode($params->toArray(), flags: JSON_THROW_ON_ERROR),
+            ]
         );
 
         return $server->makeImage(basename($path), $params->toArray());

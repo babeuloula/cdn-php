@@ -29,7 +29,10 @@ final class QueryParams
         int $watermarkSize,
         int $watermarkOpacity,
     ) {
-        $this->watermarkUrl = explode('://', (string) $watermarkUrl)[1] ?? null;
+        $this->watermarkUrl = (true === str_contains((string) $watermarkUrl, '://'))
+            ? (explode('://', (string) $watermarkUrl)[1] ?? null)
+            : $watermarkUrl
+        ;
 
         if ($watermarkSize < 0) {
             $watermarkSize = 0;

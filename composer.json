@@ -8,6 +8,7 @@
         "babeuloula/phpunit-coverage-checker": "^1.0",
         "bref/bref": "^2.3",
         "bref/extra-php-extensions": "^1.7",
+        "bref/logger": "^1.0",
         "league/flysystem": "^3.29",
         "league/flysystem-aws-s3-v3": "^3.0",
         "league/glide": "^2.3",

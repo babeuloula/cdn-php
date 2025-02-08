@@ -16,6 +16,7 @@ namespace BaBeuloula\CdnPhp\Storage;
 use BaBeuloula\CdnPhp\Decoder\UriDecoder;
 use BaBeuloula\CdnPhp\Exception\FileNotFoundException;
 use League\Flysystem\Filesystem;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
@@ -26,6 +27,7 @@ final class Storage
     public function __construct(
         private readonly Filesystem $filesystem,
         private readonly SymfonyFilesystem $symfonyFilesystem,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -38,6 +40,8 @@ final class Storage
 
     public function fetchImage(string $imageUrl): string
     {
+        $this->logger->info('Fetching image: {imageUrl}', ['imageUrl' => $imageUrl]);
+
         $extension = pathinfo($imageUrl, PATHINFO_EXTENSION);
         $filename = md5($imageUrl) . '.' . $extension;
         $path = sprintf(
@@ -47,6 +51,8 @@ final class Storage
         );
 
         if (true === $this->exists($path)) {
+            $this->logger->info('Original image already saved: {path}', ['path' => $path]);
+
             return $path;
         }
 
@@ -89,6 +95,8 @@ final class Storage
 
     public function save(string $path, string $content): void
     {
+        $this->logger->info('Save image on storage: {path}', ['path' => $path]);
+
         $this->filesystem->write($path, $content);
     }
 
