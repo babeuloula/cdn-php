@@ -1,15 +1,9 @@
 name: Deploy Lambda
 
-#on:
-#    push:
-#        tags:
-#            - '**'
-
 on:
     push:
-        branches:
+        tags:
             - '**'
-            - '!main'
 
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
@@ -25,7 +19,7 @@ permissions:
     contents: write
 
 jobs:
-    deploy:
+    deploy-lambda:
         runs-on: ubuntu-latest
 
         steps:
@@ -51,8 +45,7 @@ jobs:
             -   name: Deploy with Serverless
                 uses: serverless/github-action@v3.2
                 with:
-#                    args: deploy --stage=prod
-                    args: deploy
+                    args: deploy --stage=prod
                 env:
                     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
