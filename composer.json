@@ -6,6 +6,8 @@
         "php": ">=8.3",
         "ext-imagick": "*",
         "babeuloula/phpunit-coverage-checker": "^1.0",
+        "bref/bref": "^2.3",
+        "bref/extra-php-extensions": "^1.7",
         "league/flysystem": "^3.29",
         "league/flysystem-aws-s3-v3": "^3.0",
         "league/glide": "^2.3",
@@ -14,6 +16,7 @@
         "symfony/error-handler": "^7.2",
         "symfony/filesystem": "^7.2",
         "symfony/http-foundation": "^7.2",
+        "symfony/runtime": "^7.2",
         "symfony/string": "^7.2",
         "symfony/translation-contracts": "^3.5"
     },
@@ -46,7 +49,8 @@
     ],
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "symfony/runtime": true
         },
         "sort-packages": true,
         "audit": {
