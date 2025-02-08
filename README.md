@@ -72,7 +72,7 @@ Edit .env.local to match your setup:
 ```
 APP_DEBUG=0
 
-ALLOWED_DOMAINS=https://www.mysite.com,https://www.another-site.com
+ALLOWED_DOMAINS=mysite.com,another-site.com
 STORAGE_TYPE=local # "local" or "s3"
 
 # Local storage configuration
@@ -86,7 +86,11 @@ S3_ACCESS_KEY=your-access-key
 S3_SECRET_KEY=your-secret-key
 
 # Cache (in seconds)
-CACHE_TTL=3600
+CACHE_TTL=31536000
+
+# Logging
+LOG_STREAM=/srv/.cache/log/cdn-php.log
+LOG_LEVEL=debug
 ```
 
 ## Running with Docker

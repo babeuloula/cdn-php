@@ -18,6 +18,7 @@ use BaBeuloula\CdnPhp\Cache\Cache;
 use BaBeuloula\CdnPhp\Flysystem\Adapter\UrlFilesystemAdapter;
 use BaBeuloula\CdnPhp\Processor\ImageProcessor;
 use BaBeuloula\CdnPhp\Storage\Storage;
+use Bref\Logger\StderrLogger as BrefLogger;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use League\Flysystem\AwsS3V3\PortableVisibilityConverter;
 use League\Flysystem\Filesystem as LeagueFilesystem;
@@ -25,6 +26,7 @@ use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Visibility;
 use Pimple\Container;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
 final class ContainerConfig extends Container
@@ -37,6 +39,11 @@ final class ContainerConfig extends Container
         $this['storage_path'] = getenv('STORAGE_PATH');
         $this['cache_ttl'] = (int) getenv('CACHE_TTL');
         $this['allowed_domains'] = explode(',', (string) getenv('ALLOWED_DOMAINS'));
+
+        $this[LoggerInterface::class] = static fn () => new BrefLogger(
+            (string) getenv('LOG_LEVEL'),
+            (string) getenv('LOG_STREAM')
+        );
 
         $this[SymfonyFilesystem::class] = static fn() => new SymfonyFilesystem();
 
@@ -76,12 +83,14 @@ final class ContainerConfig extends Container
         $this[LeagueFilesystem::class] = static fn(self $c) => new LeagueFilesystem($c[FilesystemAdapter::class]);
         $this[Storage::class] = static fn (self $c) => new Storage(
             $c[LeagueFilesystem::class],
-            $c[SymfonyFilesystem::class]
+            $c[SymfonyFilesystem::class],
+            $c[LoggerInterface::class],
         );
 
         $this[ImageProcessor::class] = static fn(self $c) => new ImageProcessor(
             $c[FilesystemAdapter::class],
-            $c[UrlFilesystemAdapter::class]
+            $c[UrlFilesystemAdapter::class],
+            $c[LoggerInterface::class],
         );
 
         $this[Cache::class] = static fn(self $c) => new Cache($c[Storage::class], $c['cache_ttl']);
@@ -91,6 +100,7 @@ final class ContainerConfig extends Container
             $c[Storage::class],
             $c[ImageProcessor::class],
             $c[Cache::class],
+            $c[LoggerInterface::class],
         );
     }
 }

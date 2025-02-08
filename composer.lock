@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "14d7625adf5c5120cd48ff2e631359d0",
+    "content-hash": "04e8b108fc3fc499d8249a0998717726",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -342,6 +342,62 @@
                 }
             ],
             "time": "2024-12-27T09:38:14+00:00"
+        },
+        {
+            "name": "bref/logger",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/brefphp/logger.git",
+                "reference": "76710c21a58a939fef23a482aaeacfd23170579b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/brefphp/logger/zipball/76710c21a58a939fef23a482aaeacfd23170579b",
+                "reference": "76710c21a58a939fef23a482aaeacfd23170579b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=7.2",
+                "psr/log": "^1.1 | ^2.0 | ^3.0"
+            },
+            "require-dev": {
+                "mnapoli/hard-mode": "^0.3.0",
+                "mnapoli/pretty": "^1.0",
+                "phpstan/phpstan": "^1.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Bref\\Logger\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "All you need to log with Bref on AWS Lambda",
+            "keywords": [
+                "aws-lambda",
+                "bref",
+                "cloudwatch",
+                "lambda",
+                "logger",
+                "psr-3"
+            ],
+            "support": {
+                "issues": "https://github.com/brefphp/logger/issues",
+                "source": "https://github.com/brefphp/logger/tree/1.0.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/mnapoli",
+                    "type": "github"
+                }
+            ],
+            "time": "2022-03-09T20:54:12+00:00"
         },
         {
             "name": "crwlr/query-string",

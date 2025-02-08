@@ -28,8 +28,10 @@ class PathProcessorTest extends TestCase
         $decoder = new UriDecoder(static::TEST_BASE_URI . '?' . http_build_query($queryParams));
         $pathProcessor = new PathProcessor($decoder);
 
+        $path = ('' === $path) ? '' : "/$path";
+
         static::assertSame(
-            static::TEST_DOMAIN . '/' . $path . '/' . static::TEST_FILENAME_MD5,
+            static::TEST_DOMAIN . $path . '/' . static::TEST_FILENAME_MD5,
             $pathProcessor->getPath()
         );
     }
@@ -41,8 +43,10 @@ class PathProcessorTest extends TestCase
         $decoder = new UriDecoder(static::TEST_BASE_URI . '?' . http_build_query($queryParams));
         $pathProcessor = new PathProcessor($decoder);
 
+        $path = ('' === $path) ? '' : "/$path";
+
         static::assertSame(
-            static::TEST_DOMAIN . '/' . $path . '/' . static::TEST_FILENAME_MD5 . '.webp',
+            static::TEST_DOMAIN . $path . '/' . static::TEST_FILENAME_MD5 . '.webp',
             $pathProcessor->getPath(true)
         );
     }
@@ -53,7 +57,7 @@ class PathProcessorTest extends TestCase
         yield ['w100', ['w' => 100]];
         yield ['h100', ['h' => 100]];
         yield [
-            'markexample-com-watermark-jpg/markposcenter/markw75w/markpad3w/markalpha50',
+            'markexample-com-watermark-jpg/markposcenter/markw75w/markalpha50',
             ['wu' => static::TEST_WATERMARK_URL],
         ];
         yield ['', ['ws' => 50]];
