@@ -1,0 +1,69 @@
+service: cdn-php
+
+params:
+    default:
+        storage_driver: s3
+        cache_ttl: 31536000
+
+    prod:
+        bucket_prefix: ''
+        app_debug: 0
+
+    dev:
+        bucket_prefix: 'dev-'
+        app_debug: 1
+
+provider:
+    name: aws
+    region: eu-west-3
+    apiGateway:
+        binaryMediaTypes:
+            - '*/*'
+    environment:
+        BREF_BINARY_RESPONSES: '1'
+
+plugins:
+    - ./vendor/bref/bref
+    - ./vendor/bref/extra-php-extensions
+
+functions:
+    main:
+        handler: public/index.php
+        description: 'CDN PHP'
+        runtime: php-83-fpm
+        layers:
+            - ${bref-extra:imagick-php-83}
+        timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
+        environment:
+            APP_DEBUG: ${param:app_debug}
+            CACHE_TTL: ${param:cache_ttl}
+            STORAGE_DRIVER: ${param:storage_driver}
+            S3_PATH_STYLE_ENDPOINT: 1
+            ALLOWED_DOMAINS: ${ssm:/cdn-php/allowed-domains}
+            S3_BUCKET: ${param:bucket_prefix}${ssm:/cdn-php/s3-bucket}
+            S3_ENDPOINT: ${ssm:/cdn-php/s3-endpoint}
+            S3_REGION: ${ssm:/cdn-php/s3-region}
+            S3_ACCESS_KEY: ${ssm:/cdn-php/s3-access-key}
+            S3_SECRET_KEY: ${ssm:/cdn-php/s3-secret-key}
+
+package:
+    patterns:
+        - '!.cache/**'
+        - '!.idea/**'
+        - '!.github/**'
+        - '!build/**'
+        - '!docker/**'
+        - '!tests/**'
+        - '!.editorconfig'
+        - '!.env.local'
+        - '!.gitignore'
+        - '!composer.json'
+        - '!composer.lock'
+        - '!LICENSE'
+        - '!Makefile'
+        - '!phpcs.xml'
+        - '!phpmd-ruleset.xml'
+        - '!phpstan.neon'
+        - '!phpunit.xml'
+        - '!README.md'
+        - '!serverless.yml'

@@ -75,8 +75,6 @@ final class Cdn
         return $this->cache->createResponse($cachedPath, $supportWebp, $request);
     }
 
-
-
     /**
      * @throws EmptyUriException
      * @throws InvalidUriException
@@ -85,7 +83,7 @@ final class Cdn
      */
     private function validate(UriDecoder $decoder): void
     {
-        if ('' === $decoder->getUri()) {
+        if ('https://' === $decoder->getUri()) {
             throw new EmptyUriException();
         }
 

@@ -1,0 +1,66 @@
+name: Create release
+
+on:
+    push:
+        tags:
+            - '**'
+
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+    group: "create-release"
+    cancel-in-progress: false
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+    contents: write
+
+jobs:
+    create-release:
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Cache composer dependencies
+                uses: actions/cache@v4
+                with:
+                    key: composer-release-${{ hashFiles('composer.json') }}-${{ hashFiles('composer.lock') }}
+                    restore-keys: composer-release
+                    path: vendor
+
+            -   name: Prepare build
+                run: |
+                    mkdir -p ./build
+                    cp composer.json ./build/composer.json
+                    cp composer.lock ./build/composer.lock
+                    cp -r public ./build/public
+                    cp -r src ./build/src
+
+            -   name: Install composer dependencies
+                uses: php-actions/composer@v6
+                with:
+                    interaction: no
+                    dev: no
+                    php_version: "8.3"
+                    version: 2
+                    container_workdir: '/app/build'
+                    args: --optimize-autoloader --no-scripts --ignore-platform-reqs
+
+            -   name: Create ZIP
+                run: |
+                    rm -f ./build/composer.*
+                    cd ./build && zip -rq ./../latest.zip ./*
+                    mv ./../latest.zip ./cdn-php-${{ github.ref_name }}.zip
+
+            -   name: Add release ZIP
+                uses: softprops/action-gh-release@v2
+                with:
+                    files: |
+                        build/cdn-php-${{ github.ref_name }}.zip
+                    fail_on_unmatched_files: true
+                    append_body: true

@@ -35,7 +35,9 @@ final class UriDecoder
 
     public function getUri(): string
     {
-        return ltrim($this->uri, '/');
+        $uri = str_replace(['http://', 'http:/', 'https://', 'https:/'], '', $this->uri);
+
+        return 'https://' . ltrim($uri, '/');
     }
 
     public function getImageUrl(): string

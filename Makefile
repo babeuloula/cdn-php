@@ -1,5 +1,7 @@
 -include docker/.env
 
+.PHONY: build
+
 NO_RESET ?= n
 NO_CLEAR_CACHE ?= n
 COVERAGE_CHECKER ?= y
@@ -98,3 +100,19 @@ test-phpunit:
 # Check CVE for vendor dependencies
 test-security:
 	docker/exec composer audit
+
+##
+## Build
+##---------------------------------------------------------------------------
+
+build:
+	rm -rf ./build
+	mkdir -p ./build
+	cp composer.json ./build/composer.json
+	cp composer.lock ./build/composer.lock
+	cp -r public ./build/public
+	cp -r src ./build/src
+	docker/exec composer install --no-dev --optimize-autoloader --no-interaction --no-progress --working-dir=build
+	rm -f ./build/composer.*
+	cd ./build && zip -rq ./../latest.zip ./*
+	mv ./latest.zip ./build/latest.zip

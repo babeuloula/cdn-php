@@ -1,4 +1,6 @@
 /.cache/
+/.serverless/
+/build/
 /vendor/
 
 .env.local

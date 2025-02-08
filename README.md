@@ -19,7 +19,30 @@ It supports fetching, optimizing, caching and serving images dynamically while e
   - `ws` (watermark size percentage, default: 75%)
   - `wo` (watermark opacity percentage, default: 50%)
 - **Smart Storage Structure:** Images are stored based on query parameters.
-- ~~**Serverless Compatible:** Optimized to run in a serverless environment.~~ (TODO)
+- **Serverless Compatible:** Optimized to run in a serverless environment.
+
+## Serverless
+
+### With serverless framework and bref.sh
+
+```bash
+# dev
+serverless deploy
+
+# prod
+serverless deploy --stage=prod
+```
+
+### Upload your own ZIP
+
+You can download the release ZIP file and upload it directly to your serverless function.
+Or you can create your own release ZIP with:
+
+```bash
+make build
+```
+
+The build is available in: `build/latest.zip`.
 
 ## Installation
 
