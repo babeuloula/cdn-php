@@ -36,6 +36,8 @@ functions:
         layers:
             - ${bref-extra:imagick-php-83}
         timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
+        events:
+            - httpApi: '*'
         environment:
             APP_DEBUG: ${param:app_debug}
             CACHE_TTL: ${param:cache_ttl}
