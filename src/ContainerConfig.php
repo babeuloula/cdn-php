@@ -35,15 +35,15 @@ final class ContainerConfig extends Container
     {
         parent::__construct();
 
-        $this['storage_driver'] = getenv('STORAGE_DRIVER');
-        $this['storage_path'] = getenv('STORAGE_PATH');
-        $this['cache_ttl'] = (int) getenv('CACHE_TTL');
-        $this['allowed_domains'] = explode(',', (string) getenv('ALLOWED_DOMAINS'));
-        $this['image_compression'] = (int) getenv('IMAGE_COMPRESSION');
+        $this['storage_driver'] = $this->getEnv('STORAGE_DRIVER');
+        $this['storage_path'] = $this->getEnv('STORAGE_PATH');
+        $this['cache_ttl'] = (int) $this->getEnv('CACHE_TTL');
+        $this['allowed_domains'] = explode(',', $this->getEnv('ALLOWED_DOMAINS'));
+        $this['image_compression'] = (int) $this->getEnv('IMAGE_COMPRESSION');
 
-        $this[LoggerInterface::class] = static fn () => new BrefLogger(
-            (string) getenv('LOG_LEVEL'),
-            (string) getenv('LOG_STREAM')
+        $this[LoggerInterface::class] = fn () => new BrefLogger(
+            $this->getEnv('LOG_LEVEL'),
+            $this->getEnv('LOG_STREAM')
         );
 
         $this[SymfonyFilesystem::class] = static fn() => new SymfonyFilesystem();
@@ -52,20 +52,20 @@ final class ContainerConfig extends Container
             case 's3':
                 $awsClient = new S3Client(
                     [
-                        'version' => 'latest',
-                        'region' => getenv('S3_REGION'),
-                        'endpoint' => getenv('S3_ENDPOINT'),
-                        'use_path_style_endpoint' => 1 === ((int) getenv('S3_PATH_STYLE_ENDPOINT')),
+                        'version' => $this->getEnv('S3_VERSION', 'latest'),
+                        'region' => $this->getEnv('S3_REGION'),
+                        'endpoint' => $this->getEnv('S3_ENDPOINT'),
+                        'use_path_style_endpoint' => 1 === ((int) $this->getEnv('S3_PATH_STYLE_ENDPOINT', 1)),
                         'credentials' => [
-                            'key' => getenv('S3_ACCESS_KEY'),
-                            'secret' => getenv('S3_SECRET_KEY'),
+                            'key' => $this->getEnv('S3_ACCESS_KEY'),
+                            'secret' => $this->getEnv('S3_SECRET_KEY'),
                         ],
                     ]
                 );
 
                 $this[FilesystemAdapter::class] = new AwsS3V3Adapter(
                     client: $awsClient,
-                    bucket: (string) getenv('S3_BUCKET'),
+                    bucket: $this->getEnv('S3_BUCKET'),
                     visibility: new PortableVisibilityConverter(Visibility::PRIVATE),
                 );
                 break;
@@ -79,7 +79,7 @@ final class ContainerConfig extends Container
         }
 
         $this[UrlFilesystemAdapter::class] = static fn(self $c) => new UrlFilesystemAdapter(
-            $c[SymfonyFilesystem::class]
+            $c[SymfonyFilesystem::class],
         );
         $this[LeagueFilesystem::class] = static fn(self $c) => new LeagueFilesystem($c[FilesystemAdapter::class]);
         $this[Storage::class] = static fn (self $c) => new Storage(
@@ -104,5 +104,16 @@ final class ContainerConfig extends Container
             $c[Cache::class],
             $c[LoggerInterface::class],
         );
+    }
+
+    private function getEnv(string $key, mixed $default = null): string
+    {
+        // phpcs:ignore
+        if (false === \array_key_exists($key, $_ENV)) {
+            return $default;
+        }
+
+        // phpcs:ignore
+        return (string) $_ENV[$key];
     }
 }
