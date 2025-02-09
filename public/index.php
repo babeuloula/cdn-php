@@ -22,19 +22,17 @@ use Symfony\Component\HttpFoundation\Response;
 $dotenv = new Dotenv();
 $dotenv->loadEnv(__DIR__ . '/../.env');
 
-if (true === filter_var(getenv('APP_DEBUG'), FILTER_VALIDATE_BOOLEAN)) {
-    Debug::enable();
-}
-
 return static function (Request $request): Response {
-    return ErrorHandler::call(
-        static function () use ($request) {
-            $container = new ContainerConfig();
+    $container = new ContainerConfig();
+    /** @var Cdn $cdn */
+    $cdn = $container[Cdn::class];
 
-            /** @var Cdn $cdn */
-            $cdn = $container[Cdn::class];
+    // phpcs:ignore
+    if (true === filter_var($_ENV['APP_DEBUG'], FILTER_VALIDATE_BOOLEAN)) {
+        Debug::enable();
 
-            return $cdn->handleRequest($request);
-        }
-    );
+        return ErrorHandler::call(static fn () => $cdn->handleRequest($request));
+    }
+
+    return $cdn->handleRequest($request);
 };
