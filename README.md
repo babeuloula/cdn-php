@@ -27,10 +27,12 @@ It supports fetching, optimizing, caching and serving images dynamically while e
 
 ```bash
 # dev
-serverless deploy
+make deploy
+make remove
 
 # prod
-serverless deploy --stage=prod
+make deploy-prod
+make remove-prod
 ```
 
 ### Upload your own ZIP
