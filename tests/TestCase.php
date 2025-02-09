@@ -23,8 +23,10 @@ use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 class TestCase extends BaseTestCase
 {
     protected const string TEST_BASE_URI = 'https://example.com/image.jpg';
+    protected const string TEST_BASE_URI_ALIAS = '_e_/image.jpg';
     protected const string TEST_WATERMARK_URL = 'https://example.com/watermark.jpg';
     protected const string TEST_DOMAIN = 'example.com';
+    protected const string TEST_DOMAIN_ALIAS = 'e';
     protected const string TEST_FILENAME = 'image.jpg';
     protected const string TEST_FILENAME_MD5 = '18867d45576d8283d6fabb82406789c8.jpg';
     protected const string TEST_EXTENSION = 'jpg';

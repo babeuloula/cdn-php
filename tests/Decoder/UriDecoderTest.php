@@ -29,6 +29,17 @@ class UriDecoderTest extends TestCase
     }
 
     #[Test]
+    public function canGetUriWithAnAlias(): void
+    {
+        $decoder = new UriDecoder(
+            static::TEST_BASE_URI_ALIAS . $this->getQueryParameters(),
+            [static::TEST_DOMAIN_ALIAS => static::TEST_DOMAIN],
+        );
+
+        static::assertSame(static::TEST_BASE_URI . $this->getQueryParameters(), $decoder->getUri());
+    }
+
+    #[Test]
     public function canGetImageUrl(): void
     {
         $decoder = new UriDecoder(static::TEST_BASE_URI . $this->getQueryParameters());

@@ -17,12 +17,14 @@ use BaBeuloula\CdnPhp\Dto\QueryParams;
 
 final class UriDecoder
 {
-    private string $imageUrl;
-    private string $domain;
-    private string $filename;
-    private QueryParams $query;
+    private ?string $finalUri = null;
+    private readonly string $imageUrl;
+    private readonly string $domain;
+    private readonly string $filename;
+    private readonly QueryParams $query;
 
-    public function __construct(private readonly string $uri)
+    /** @param string[] $domainsAliases */
+    public function __construct(private readonly string $uri, private readonly array $domainsAliases = [])
     {
         $this->imageUrl = explode('?', $this->getUri())[0];
         $this->domain = (string) parse_url($this->getUri(), PHP_URL_HOST);
@@ -35,9 +37,21 @@ final class UriDecoder
 
     public function getUri(): string
     {
-        $uri = str_replace(['http://', 'http:/', 'https://', 'https:/'], '', $this->uri);
+        if (null === $this->finalUri) {
+            $uri = ltrim($this->uri, '/');
 
-        return 'https://' . ltrim($uri, '/');
+            if (true === str_starts_with($uri, '_')) {
+                $domainAlias = str_replace('_', '', explode('/', $uri)[0]);
+                $domain = $this->domainsAliases[$domainAlias] ?? '';
+                $uri = str_replace("_{$domainAlias}_", $domain, $uri);
+            }
+
+            $uri = str_replace(['http://', 'http:/', 'https://', 'https:/'], '', $uri);
+
+            $this->finalUri = "https://$uri";
+        }
+
+        return $this->finalUri;
     }
 
     public function getImageUrl(): string
