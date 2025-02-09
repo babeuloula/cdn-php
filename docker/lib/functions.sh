@@ -46,9 +46,6 @@ function get_env_value() {
     local env_to=$3
 
     case ${key} in
-        DOCKER_UID)
-            value=$(id -u)
-        ;;
         *)
             if [[ ! -f ${env_to} ]] || [[ "$(cat ${env_to} | grep -Ec "^${key}=(.*)$")" -eq 0 ]]; then
                 value=$(ask_value "Define the value of ${YELLOW}${key}${CYAN}" ${default_value})
@@ -86,17 +83,8 @@ function get_current_version() {
     echo "$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname)' --count=1)" | sed -r 's/refs\/tags\///g'
 }
 
-# Autoadd the project host to your /etc/hosts
-function add_host() {
-    local host=$1
-
-    if [[ $(grep -c ${host} /etc/hosts) -eq 0 ]]; then
-        sudo /bin/sh -c "echo \"127.0.0.1 ${host}\" >> /etc/hosts"
-    fi
-}
-
 function install_composer() {
-    docker compose exec php composer install --no-interaction --no-progress
+    docker run --rm -it --name composer_docker --user ${UID}:${GID} -v "$1":/usr/src/myapp -w /usr/src/myapp composer:latest composer install --no-interaction --no-progress --ignore-platform-reqs
 }
 
 function minio() {

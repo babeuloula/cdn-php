@@ -1,4 +1,2 @@
 /.env
 /docker-compose.override.yml
-/certificates/*.key
-/certificates/*.pem
