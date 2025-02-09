@@ -6,14 +6,24 @@ params:
         cache_ttl: 31536000
 
     prod:
-        bucket_prefix: ''
         app_debug: 0
         log_level: info
+        allowed_domains: ${ssm:/cdn-php/allowed-domains}
+        s3_bucket: ${ssm:/cdn-php/s3-bucket}
+        s3_endpoint: ${ssm:/cdn-php/s3-endpoint}
+        s3_region: ${ssm:/cdn-php/s3-region}
+        s3_access_key: ${ssm:/cdn-php/s3-access-key}
+        s3_secret_key: ${ssm:/cdn-php/s3-secret-key}
 
     dev:
-        bucket_prefix: 'dev-'
         app_debug: 1
         log_level: debug
+        allowed_domains: ${ssm:/cdn-php/dev/allowed-domains}
+        s3_bucket: ${ssm:/cdn-php/dev/s3-bucket}
+        s3_endpoint: ${ssm:/cdn-php/dev/s3-endpoint}
+        s3_region: ${ssm:/cdn-php/dev/s3-region}
+        s3_access_key: ${ssm:/cdn-php/dev/s3-access-key}
+        s3_secret_key: ${ssm:/cdn-php/dev/s3-secret-key}
 
 provider:
     name: aws
@@ -41,12 +51,12 @@ functions:
             CACHE_TTL: ${param:cache_ttl}
             STORAGE_DRIVER: ${param:storage_driver}
             S3_PATH_STYLE_ENDPOINT: 1
-            ALLOWED_DOMAINS: ${ssm:/cdn-php/allowed-domains}
-            S3_BUCKET: ${param:bucket_prefix}${ssm:/cdn-php/s3-bucket}
-            S3_ENDPOINT: ${ssm:/cdn-php/s3-endpoint}
-            S3_REGION: ${ssm:/cdn-php/s3-region}
-            S3_ACCESS_KEY: ${ssm:/cdn-php/s3-access-key}
-            S3_SECRET_KEY: ${ssm:/cdn-php/s3-secret-key}
+            ALLOWED_DOMAINS: ${param:allowed_domains}
+            S3_BUCKET: ${param:s3_bucket}
+            S3_ENDPOINT: ${param:s3_endpoint}
+            S3_REGION: ${param:s3_region}
+            S3_ACCESS_KEY: ${param:s3_access_key}
+            S3_SECRET_KEY: ${param:s3_secret_key}
             LOG_STREAM: php://stderr
             LOG_LEVEL: ${param:log_level}
 

@@ -102,7 +102,7 @@ test-security:
 	docker/exec composer audit
 
 ##
-## Build
+## Build & deploy
 ##---------------------------------------------------------------------------
 
 build:
@@ -116,3 +116,15 @@ build:
 	rm -f ./build/composer.*
 	cd ./build && zip -rq ./../latest.zip ./*
 	mv ./latest.zip ./build/latest.zip
+
+deploy:
+	serverless deploy
+
+remove:
+	serverless remove
+
+deploy-prod:
+	serverless deploy --stage=prod
+
+remove-prod:
+	serverless remove --stage=prod
