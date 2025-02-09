@@ -10,4 +10,4 @@ parse_env ".env.dist" ".env"
 . ./.env
 
 # Start and remove useless containers
-docker compose up -d --remove-orphans
+docker compose up -d --remove-orphans --force-recreate

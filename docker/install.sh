@@ -13,9 +13,6 @@ parse_env ".env.dist" ".env"
 . ./.env
 echo -e "${GREEN}Configuration done!${RESET}" > /dev/tty
 
-# Install SSL certificates for dev
-./mkcert.sh
-
 block_info "Build & start Docker"
 # Pull all container in parallel to optimize your time
 docker compose pull
@@ -26,14 +23,11 @@ docker compose build --parallel
 echo -e "${GREEN}Docker is started with success!${RESET}" > /dev/tty
 
 block_info "Install dependencies"
-mkdir -p ../.cache/minio
-install_composer
+mkdir -p ../.cache/driver/s3
+install_composer $(dirname ${DOCKER_PATH})
 echo -e "${GREEN}Dependencies installed with success!${RESET}" > /dev/tty
-
-add_host "${HTTP_HOST}"
-add_host "minio.${HTTP_HOST}"
 
 block_info "Prepare CDN PHP"
 minio
 
-block_success "CDN PHP is started https://${HTTP_HOST}"
+block_success "CDN PHP is started http://localhost:8000"

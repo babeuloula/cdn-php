@@ -78,7 +78,7 @@ ALLOWED_DOMAINS=mysite.com,another-site.com
 STORAGE_TYPE=local # "local" or "s3"
 
 # Local storage configuration
-LOCAL_STORAGE_PATH=/tmp/cdn-php
+STORAGE_PATH=/var/task/.cache/driver/local
 
 # S3 storage configuration (if STORAGE_TYPE=s3)
 S3_BUCKET=my-bucket
