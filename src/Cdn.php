@@ -29,9 +29,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class Cdn
 {
-    /** @param string[] $allowedDomains */
+    /**
+     * @param string[] $allowedDomains
+     * @param string[] $domainsAliases
+     */
     public function __construct(
         private readonly array $allowedDomains,
+        private readonly array $domainsAliases,
         private readonly Storage $storage,
         private readonly ImageProcessor $imageProcessor,
         private readonly Cache $cache,
@@ -45,7 +49,7 @@ final class Cdn
             return new Response('Only GET request is supported.', Response::HTTP_METHOD_NOT_ALLOWED);
         }
 
-        $decoder = new UriDecoder($request->getRequestUri());
+        $decoder = new UriDecoder($request->getRequestUri(), $this->domainsAliases);
 
         try {
             $this->validate($decoder);

@@ -38,7 +38,25 @@ final class ContainerConfig extends Container
         $this['storage_driver'] = $this->getEnv('STORAGE_DRIVER');
         $this['storage_path'] = $this->getEnv('STORAGE_PATH');
         $this['cache_ttl'] = (int) $this->getEnv('CACHE_TTL');
-        $this['allowed_domains'] = explode(',', $this->getEnv('ALLOWED_DOMAINS'));
+
+        $allowedDomains = [];
+        $domainsAliases = [];
+        foreach (explode(',', $this->getEnv('ALLOWED_DOMAINS')) as $domain) {
+            if (true === str_contains($domain, '=')) {
+                $parts = explode('=', $domain);
+
+                $allowedDomains[] = $parts[0];
+                $domainsAliases[$parts[1]] = $parts[0];
+
+                continue;
+            }
+
+            $allowedDomains[] = $domain;
+        }
+
+        $this['allowed_domains'] = $allowedDomains;
+        $this['domains_aliases'] = $domainsAliases;
+
         $this['image_compression'] = (int) $this->getEnv('IMAGE_COMPRESSION');
 
         $this[LoggerInterface::class] = fn () => new BrefLogger(
@@ -99,6 +117,7 @@ final class ContainerConfig extends Container
 
         $this[Cdn::class] = static fn(self $c) => new Cdn(
             $c['allowed_domains'],
+            $c['domains_aliases'],
             $c[Storage::class],
             $c[ImageProcessor::class],
             $c[Cache::class],
