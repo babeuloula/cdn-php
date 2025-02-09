@@ -91,6 +91,9 @@ CACHE_TTL=31536000
 # Logging
 LOG_STREAM=/srv/.cache/log/cdn-php.log
 LOG_LEVEL=debug
+
+# Compression
+IMAGE_COMPRESSION=75
 ```
 
 ## Running with Docker

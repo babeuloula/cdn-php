@@ -29,7 +29,7 @@ class TestCase extends BaseTestCase
     protected const string TEST_FILENAME_MD5 = '18867d45576d8283d6fabb82406789c8.jpg';
     protected const string TEST_EXTENSION = 'jpg';
     protected const string TEST_ORIGINAL_PATH = 'example.com/original/' . self::TEST_FILENAME_MD5;
-    protected const string TEST_CACHE_PATH = './cache/image.jpg/c5563282009e720f3bef02f88d83cc85';
+    protected const string TEST_CACHE_PATH = './cache/image.jpg/364decb550d1cdf8e3be5eeb79bd43a3';
 
     private ContainerConfig $container;
 

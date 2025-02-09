@@ -49,6 +49,7 @@ functions:
             S3_SECRET_KEY: ${ssm:/cdn-php/s3-secret-key}
             LOG_STREAM: php://stderr
             LOG_LEVEL: ${param:log_level}
+            IMAGE_COMPRESSION: ${ssm:/cdn-php/image-compression}
 
 package:
     patterns:

@@ -26,6 +26,7 @@ final class ImageProcessor
         private readonly FilesystemAdapter $adapter,
         private readonly UrlFilesystemAdapter $urlFilesystemAdapter,
         private readonly LoggerInterface $logger,
+        private readonly int $imageCompression,
     ) {
     }
 
@@ -50,6 +51,6 @@ final class ImageProcessor
             ]
         );
 
-        return $server->makeImage(basename($path), $params->toArray());
+        return $server->makeImage(basename($path), [...$params->toArray(), 'q' => $this->imageCompression]);
     }
 }

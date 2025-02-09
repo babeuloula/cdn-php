@@ -39,6 +39,7 @@ final class ContainerConfig extends Container
         $this['storage_path'] = getenv('STORAGE_PATH');
         $this['cache_ttl'] = (int) getenv('CACHE_TTL');
         $this['allowed_domains'] = explode(',', (string) getenv('ALLOWED_DOMAINS'));
+        $this['image_compression'] = (int) getenv('IMAGE_COMPRESSION');
 
         $this[LoggerInterface::class] = static fn () => new BrefLogger(
             (string) getenv('LOG_LEVEL'),
@@ -91,6 +92,7 @@ final class ContainerConfig extends Container
             $c[FilesystemAdapter::class],
             $c[UrlFilesystemAdapter::class],
             $c[LoggerInterface::class],
+            $c['image_compression'],
         );
 
         $this[Cache::class] = static fn(self $c) => new Cache($c[Storage::class], $c['cache_ttl']);
