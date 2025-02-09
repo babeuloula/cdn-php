@@ -41,8 +41,7 @@
         </properties>
     </rule>
     <rule ref="rulesets/controversial.xml">
-        <exclude name="CamelCasePropertyName"/>
-        <exclude name="CamelCaseMethodName"/>
+        <exclude name="Superglobals"/>
     </rule>
     <rule ref="rulesets/design.xml">
         <exclude name="CouplingBetweenObjects"/>

@@ -20,7 +20,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 $dotenv = new Dotenv();
-$dotenv->usePutenv();
 $dotenv->loadEnv(__DIR__ . '/../.env');
 
 if (true === filter_var(getenv('APP_DEBUG'), FILTER_VALIDATE_BOOLEAN)) {
