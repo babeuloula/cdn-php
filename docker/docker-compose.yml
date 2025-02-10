@@ -9,6 +9,7 @@ services:
         environment:
             HANDLER: public/index.php
             BREF_BINARY_RESPONSES: 1
+            COMPOSER_HOME: /var/task/.cache/composer
         ports: [ '${CDN_PHP_PORT:-8000}:8000' ]
         volumes:
             - ..:/var/task

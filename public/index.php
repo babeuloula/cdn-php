@@ -13,6 +13,7 @@ require_once \dirname(__DIR__) . '/vendor/autoload_runtime.php';
 
 use BaBeuloula\CdnPhp\Cdn;
 use BaBeuloula\CdnPhp\ContainerConfig;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\ErrorHandler\ErrorHandler;
@@ -22,17 +23,29 @@ use Symfony\Component\HttpFoundation\Response;
 $dotenv = new Dotenv();
 $dotenv->loadEnv(__DIR__ . '/../.env');
 
-return static function (Request $request): Response {
-    $container = new ContainerConfig();
-    /** @var Cdn $cdn */
-    $cdn = $container[Cdn::class];
+$container = new ContainerConfig();
+/** @var Cdn $cdn */
+$cdn = $container[Cdn::class];
+/** @var LoggerInterface $logger */
+$logger = $container[LoggerInterface::class];
 
-    // phpcs:ignore
-    if (true === filter_var($_ENV['APP_DEBUG'], FILTER_VALIDATE_BOOLEAN)) {
-        Debug::enable();
+return static function (Request $request) use ($cdn, $logger): Response {
+    try {
+        return $cdn->handleRequest($request);
+    } catch (\Throwable $exception) {
+        $logger->error(
+            'An error occurred: {message}',
+            [
+                'message' => $exception->getMessage(),
+                'exception' => $exception,
+            ]
+        );
 
-        return ErrorHandler::call(static fn () => $cdn->handleRequest($request));
+        // phpcs:ignore
+        if (true === filter_var($_ENV['APP_DEBUG'], FILTER_VALIDATE_BOOLEAN)) {
+            Debug::enable();
+        }
+
+        return ErrorHandler::call(static fn () => throw $exception);
     }
-
-    return $cdn->handleRequest($request);
 };

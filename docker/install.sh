@@ -24,7 +24,7 @@ echo -e "${GREEN}Docker is started with success!${RESET}" > /dev/tty
 
 block_info "Install dependencies"
 mkdir -p ../.cache/driver/s3
-install_composer $(dirname ${DOCKER_PATH})
+./exec composer install --no-interaction --no-progress
 echo -e "${GREEN}Dependencies installed with success!${RESET}" > /dev/tty
 
 block_info "Prepare CDN PHP"
