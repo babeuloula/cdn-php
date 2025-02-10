@@ -46,7 +46,7 @@ final class UriDecoder
                 $uri = str_replace("_{$domainAlias}_", $domain, $uri);
             }
 
-            $uri = str_replace(['http://', 'http:/', 'https://', 'https:/'], '', $uri);
+            $uri = str_replace(['www.', 'http://', 'http:/', 'https://', 'https:/'], '', $uri);
 
             $this->finalUri = "https://$uri";
         }

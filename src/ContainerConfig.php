@@ -39,23 +39,18 @@ final class ContainerConfig extends Container
         $this['storage_path'] = $this->getEnv('STORAGE_PATH');
         $this['cache_ttl'] = (int) $this->getEnv('CACHE_TTL');
 
-        $allowedDomains = [];
         $domainsAliases = [];
-        foreach (explode(',', $this->getEnv('ALLOWED_DOMAINS')) as $domain) {
-            if (true === str_contains($domain, '=')) {
-                $parts = explode('=', $domain);
-
-                $allowedDomains[] = $parts[0];
-                $domainsAliases[$parts[1]] = $parts[0];
-
-                continue;
+        foreach (explode(',', $this->getEnv('DOMAINS_ALIASES')) as $domain) {
+            if (false === str_contains($domain, '=')) {
+                throw new \InvalidArgumentException("Domain alias must contain '='.");
             }
 
-            $allowedDomains[] = $domain;
+            $parts = explode('=', $domain);
+            $domainsAliases[$parts[1]] = $parts[0];
         }
-
-        $this['allowed_domains'] = $allowedDomains;
         $this['domains_aliases'] = $domainsAliases;
+
+        $this['allowed_domains'] = explode(',', $this->getEnv('ALLOWED_DOMAINS'));
 
         $this['image_compression'] = (int) $this->getEnv('IMAGE_COMPRESSION');
 
