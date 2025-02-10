@@ -83,10 +83,6 @@ function get_current_version() {
     echo "$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname)' --count=1)" | sed -r 's/refs\/tags\///g'
 }
 
-function install_composer() {
-    docker run --rm -it --name composer_docker --user ${UID}:${GID} -v "$1":/usr/src/myapp -w /usr/src/myapp composer:latest composer install --no-interaction --no-progress --ignore-platform-reqs
-}
-
 function minio() {
     cd .. && make buckets
 }

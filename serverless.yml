@@ -9,6 +9,7 @@ params:
         app_debug: 0
         log_level: info
         allowed_domains: ${ssm:/cdn-php/allowed-domains}
+        domains_aliases: ${ssm:/cdn-php/domains-aliases}
         s3_bucket: ${ssm:/cdn-php/s3-bucket}
         s3_endpoint: ${ssm:/cdn-php/s3-endpoint}
         s3_region: ${ssm:/cdn-php/s3-region}
@@ -19,6 +20,7 @@ params:
         app_debug: 1
         log_level: debug
         allowed_domains: ${ssm:/cdn-php/dev/allowed-domains}
+        domains_aliases: ${ssm:/cdn-php/dev/domains-aliases}
         s3_bucket: ${ssm:/cdn-php/dev/s3-bucket}
         s3_endpoint: ${ssm:/cdn-php/dev/s3-endpoint}
         s3_region: ${ssm:/cdn-php/dev/s3-region}
@@ -58,6 +60,7 @@ functions:
             STORAGE_DRIVER: ${param:storage_driver}
             S3_PATH_STYLE_ENDPOINT: 1
             ALLOWED_DOMAINS: ${param:allowed_domains}
+            DOMAINS_ALIASES: ${param:domains_aliases}
             S3_BUCKET: ${param:s3_bucket}
             S3_ENDPOINT: ${param:s3_endpoint}
             S3_REGION: ${param:s3_region}

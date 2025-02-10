@@ -32,6 +32,10 @@ destroy: stop
 # Restart the project
 restart: stop start
 
+# Read logs
+logs:
+	cd ./docker && docker compose logs -f
+
 hooks:
 	# Pre commit
 	echo "#!/bin/bash" > .git/hooks/pre-commit
@@ -45,7 +49,7 @@ hooks:
 post-merge: composer
 
 composer:
-	docker/exec composer install
+	docker/exec composer install --optimize-autoloader --no-interaction
 
 # Connect to PHP container
 shell:
@@ -118,13 +122,15 @@ build:
 	mv ./latest.zip ./build/latest.zip
 
 deploy:
-	serverless deploy
+	docker/exec composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+	serverless deploy --force
 
 remove:
 	serverless remove
 
 deploy-prod:
-	serverless deploy --stage=prod
+	docker/exec composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+	serverless deploy --stage=prod --force
 
 remove-prod:
 	serverless remove --stage=prod
