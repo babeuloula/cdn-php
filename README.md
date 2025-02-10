@@ -74,7 +74,9 @@ Edit .env.local to match your setup:
 ```
 APP_DEBUG=0
 
-ALLOWED_DOMAINS=mysite.com,another-site.com=domain_alias
+ALLOWED_DOMAINS=mysite.com,another-site.com
+DOMAINS_ALIASES=another-site.com/secret-images=another
+
 STORAGE_TYPE=local # "local" or "s3"
 
 # Local storage configuration
