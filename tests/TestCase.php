@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace BaBeuloula\CdnPhp\Tests;
 
-use BaBeuloula\CdnPhp\ContainerConfig;
+use BaBeuloula\CdnPhp\Container;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use PHPUnit\Framework\TestCase as BaseTestCase;
@@ -33,7 +33,7 @@ class TestCase extends BaseTestCase
     protected const string TEST_ORIGINAL_PATH = 'example.com/original/' . self::TEST_FILENAME_MD5;
     protected const string TEST_CACHE_PATH = './cache/image.jpg/364decb550d1cdf8e3be5eeb79bd43a3';
 
-    private ContainerConfig $container;
+    private Container $container;
 
     protected function setUp(): void
     {
@@ -54,14 +54,15 @@ class TestCase extends BaseTestCase
             )
         ;
 
-        $this->container = new ContainerConfig();
-        $this->container[SymfonyFilesystem::class] = $symfonyFilesystemMock;
-        $this->container[FilesystemAdapter::class] = new InMemoryFilesystemAdapter();
+        $this->container = new Container();
+        $this->container->add(SymfonyFilesystem::class, $symfonyFilesystemMock);
+        $this->container->add(FilesystemAdapter::class, new InMemoryFilesystemAdapter());
+        $this->container->boot();
     }
 
     protected function getContainer(string $id): mixed
     {
-        return $this->container[$id];
+        return $this->container->get($id);
     }
 
     protected function getQueryParameters(): string

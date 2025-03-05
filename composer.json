@@ -12,7 +12,6 @@
         "league/flysystem": "^3.29",
         "league/flysystem-aws-s3-v3": "^3.0",
         "league/glide": "^2.3",
-        "pimple/pimple": "^3.5",
         "symfony/dotenv": "^7.2",
         "symfony/error-handler": "^7.2",
         "symfony/filesystem": "^7.2",
