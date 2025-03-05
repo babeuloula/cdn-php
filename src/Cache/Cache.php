@@ -30,7 +30,7 @@ final class Cache
     {
         $stream = $this->storage->readStream($path);
 
-        $now = new \DateTime();
+        $lastModified = (new \DateTimeImmutable())->setTimestamp($this->storage->lastModified($path));
 
         $response = new StreamedResponse();
         $response->headers->set(
@@ -40,8 +40,9 @@ final class Cache
         $response->headers->set('Content-Length', (string) $this->storage->fileSize($path));
         $response->setPublic();
         $response->setMaxAge($this->ttl);
-        $response->setExpires($now->modify("+$this->ttl seconds"));
-        $response->setLastModified($now->setTimestamp($this->storage->lastModified($path)));
+        $response->setExpires((new \DateTimeImmutable())->modify("+$this->ttl seconds"));
+        $response->setLastModified($lastModified);
+        $response->setEtag(md5((string) $lastModified->getTimestamp()));
         $response->isNotModified($request);
 
         $response->setCallback(
@@ -53,7 +54,7 @@ final class Cache
                 fpassthru($stream);
                 fclose($stream);
                 // @codeCoverageIgnoreEnd
-            }
+            },
         );
 
         return $response;
