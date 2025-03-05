@@ -49,7 +49,8 @@ functions:
             - ${bref-extra:imagick-php-83}
         timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
         events:
-            - httpApi: '*'
+            - http: 'GET /'
+            - http: 'GET /{proxy+}'
             - schedule:
                 rate: rate(5 minutes)
                 input:
