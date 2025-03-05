@@ -38,7 +38,7 @@ final class Storage
         return $this;
     }
 
-    public function fetchImage(string $imageUrl): string
+    public function fetchImage(string $imageUrl, bool $force = false): string
     {
         $this->logger->info('Fetching image: {imageUrl}', ['imageUrl' => $imageUrl]);
 
@@ -50,7 +50,7 @@ final class Storage
             $filename,
         );
 
-        if (true === $this->exists($path)) {
+        if (true === $this->exists($path) && false === $force) {
             $this->logger->info('Original image already saved: {path}', ['path' => $path]);
 
             return $path;

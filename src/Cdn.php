@@ -66,10 +66,15 @@ final class Cdn
         $supportWebp = (true === str_contains((string) $request->headers->get('Accept'), 'image/webp'));
 
         $cachedPath = $pathProcessor->getPath($supportWebp);
+        $force = $request->query->getBoolean('force');
 
-        if (false === $this->storage->exists($cachedPath)) {
+        if (false === $this->storage->exists($cachedPath) || true === $force) {
+            if (true === $force) {
+                $this->logger->info('Force re-fetch image: {image}', ['image' => $decoder->getImageUrl()]);
+            }
+
             try {
-                $originalPath = $this->storage->fetchImage($decoder->getImageUrl());
+                $originalPath = $this->storage->fetchImage($decoder->getImageUrl(), $force);
             } catch (FileNotFoundException $e) {
                 return new Response($e->getMessage(), $e->getCode());
             }

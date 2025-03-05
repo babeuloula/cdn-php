@@ -22,7 +22,7 @@ final class QueryParams
     public readonly int $watermarkOpacity;
 
     private function __construct(
-        public readonly ?int $width,
+        public readonly int $width,
         public readonly ?int $height,
         ?string $watermarkUrl,
         public readonly WatermarkPosition $watermarkPosition,
@@ -59,7 +59,7 @@ final class QueryParams
     {
         // phpcs:disable
         return new self(
-            empty($query['w']) ? null : ((int) $query['w']),
+            empty($query['w']) ? 0 : ((int) $query['w']),
             empty($query['h']) ? null : ((int) $query['h']),
             empty($query['wu']) ? null : ((string) $query['wu']),
             empty($query['wp']) ? WatermarkPosition::default() : (WatermarkPosition::tryFrom($query['wp']) ?? WatermarkPosition::default()),
@@ -91,10 +91,10 @@ final class QueryParams
             );
         }
 
-        if (true === \is_int($this->width) && true === \is_int($this->height)) {
+        if ($this->width > 0 && true === \is_int($this->height)) {
             $params['fit'] = 'crop';
         }
 
-        return array_filter($params);
+        return array_filter($params, static fn (mixed $value) => null !== $value);
     }
 }
