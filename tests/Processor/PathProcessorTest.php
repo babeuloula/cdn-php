@@ -53,15 +53,15 @@ class PathProcessorTest extends TestCase
 
     public static function queryParametersProvider(): \Generator
     {
-        yield ['', []];
+        yield ['w0', []];
         yield ['w100', ['w' => 100]];
-        yield ['h100', ['h' => 100]];
+        yield ['w0/h100', ['h' => 100]];
         yield [
-            'markexample-com-watermark-jpg/markposcenter/markw75w/markalpha50',
+            'w0/markexample-com-watermark-jpg/markposcenter/markw75w/markalpha50',
             ['wu' => static::TEST_WATERMARK_URL],
         ];
-        yield ['', ['ws' => 50]];
-        yield ['', ['wo' => 50]];
+        yield ['w0', ['ws' => 50]];
+        yield ['w0', ['wo' => 50]];
 
         yield ['w100/h100', ['w' => 100, 'h' => 100]];
     }

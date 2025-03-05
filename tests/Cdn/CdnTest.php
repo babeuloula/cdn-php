@@ -115,4 +115,17 @@ class CdnTest extends TestCase
         static::assertSame('image/jpeg', $response->headers->get('Content-Type'));
         static::assertSame(Response::HTTP_OK, $response->getStatusCode());
     }
+
+    #[Test]
+    public function canHandleRequestAndForceReFetch(): void
+    {
+        $request = Request::create(
+            'http://mycdn.com/' . static::TEST_BASE_URI . '?' . http_build_query(['force' => true])
+        );
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame('image/jpeg', $response->headers->get('Content-Type'));
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
 }
