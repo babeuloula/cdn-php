@@ -12,7 +12,7 @@
 require_once \dirname(__DIR__) . '/vendor/autoload_runtime.php';
 
 use BaBeuloula\CdnPhp\Cdn;
-use BaBeuloula\CdnPhp\ContainerConfig;
+use BaBeuloula\CdnPhp\Container;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\ErrorHandler\Debug;
@@ -23,11 +23,12 @@ use Symfony\Component\HttpFoundation\Response;
 $dotenv = new Dotenv();
 $dotenv->loadEnv(__DIR__ . '/../.env');
 
-$container = new ContainerConfig();
+$container = new Container();
+$container->boot();
 /** @var Cdn $cdn */
-$cdn = $container[Cdn::class];
+$cdn = $container->get(Cdn::class);
 /** @var LoggerInterface $logger */
-$logger = $container[LoggerInterface::class];
+$logger = $container->get(LoggerInterface::class);
 
 return static function (Request $request) use ($cdn, $logger): Response {
     try {
