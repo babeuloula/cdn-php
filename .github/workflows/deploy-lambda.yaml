@@ -5,33 +5,27 @@ on:
         tags:
             - '**'
 
-    # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-    group: "deploy-lambda"
-    cancel-in-progress: false
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-    contents: write
 
 jobs:
     deploy-lambda:
         runs-on: ubuntu-latest
 
+        timeout-minutes: 15
+
+        concurrency: deploy-prod # Avoid deploying concurrently
+
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
 
-            -   name: Cache composer dependencies
-                uses: actions/cache@v4
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
                 with:
-                    key: composer-release-${{ hashFiles('composer.json') }}-${{ hashFiles('composer.lock') }}
-                    restore-keys: composer-release
-                    path: vendor
+                    php-version: '8.3'
+                    coverage: none
+                    # Install the Bref CLI as a global tool
+                    tools: bref/cli
 
             -   name: Install composer dependencies
                 uses: php-actions/composer@v6
@@ -42,10 +36,11 @@ jobs:
                     version: 2
                     args: --optimize-autoloader --no-scripts --ignore-platform-reqs
 
-            -   name: Deploy with Serverless
-                uses: serverless/github-action@v3.2
-                with:
-                    args: deploy --stage=prod --force
+            -   name: Add Bref Cloud team
+                run: |
+                    echo "bref:" >> serverless.yml
+                    echo "    team: babeuloula" >> serverless.yml
+
+            -   run: bref deploy --env=prod
                 env:
-                    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                    BREF_TOKEN: ${{ secrets.BREF_TOKEN }}
