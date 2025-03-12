@@ -8,13 +8,14 @@ params:
     prod:
         app_debug: 0
         log_level: info
-        allowed_domains: ${ssm:/cdn-php/allowed-domains}
-        domains_aliases: ${ssm:/cdn-php/domains-aliases}
-        s3_bucket: ${ssm:/cdn-php/s3-bucket}
-        s3_endpoint: ${ssm:/cdn-php/s3-endpoint}
-        s3_region: ${ssm:/cdn-php/s3-region}
-        s3_access_key: ${ssm:/cdn-php/s3-access-key}
-        s3_secret_key: ${ssm:/cdn-php/s3-secret-key}
+        allowed_domains: ${ssm:/cdn-php/prod/allowed-domains}
+        domains_aliases: ${ssm:/cdn-php/prod/domains-aliases}
+        s3_bucket: ${ssm:/cdn-php/prod/s3-bucket}
+        s3_endpoint: ${ssm:/cdn-php/prod/s3-endpoint}
+        s3_region: ${ssm:/cdn-php/prod/s3-region}
+        s3_access_key: ${ssm:/cdn-php/prod/s3-access-key}
+        s3_secret_key: ${ssm:/cdn-php/prod/s3-secret-key}
+        image_compression: ${ssm:/cdn-php/prod/image-compression}
 
     dev:
         app_debug: 1
@@ -26,6 +27,7 @@ params:
         s3_region: ${ssm:/cdn-php/dev/s3-region}
         s3_access_key: ${ssm:/cdn-php/dev/s3-access-key}
         s3_secret_key: ${ssm:/cdn-php/dev/s3-secret-key}
+        image_compression: ${ssm:/cdn-php/dev/image-compression}
 
 provider:
     name: aws
@@ -69,7 +71,7 @@ functions:
             S3_SECRET_KEY: ${param:s3_secret_key}
             LOG_STREAM: php://stderr
             LOG_LEVEL: ${param:log_level}
-            IMAGE_COMPRESSION: ${ssm:/cdn-php/image-compression}
+            IMAGE_COMPRESSION: ${param:image_compression}
 
 package:
     patterns:
