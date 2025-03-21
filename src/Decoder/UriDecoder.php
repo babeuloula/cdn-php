@@ -41,7 +41,7 @@ final class UriDecoder
             $uri = ltrim($this->uri, '/');
 
             if (true === str_starts_with($uri, '_')) {
-                $domainAlias = str_replace('_', '', explode('/', $uri)[0]);
+                $domainAlias = trim(explode('/', $uri)[0], '_');
                 $domain = $this->domainsAliases[$domainAlias] ?? '';
                 $uri = str_replace("_{$domainAlias}_", $domain, $uri);
             }
