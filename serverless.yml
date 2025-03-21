@@ -50,6 +50,7 @@ functions:
         layers:
             - ${bref-extra:imagick-php-83}
         timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
+        memorySize: 2048
         events:
             - http: 'GET /'
             - http: 'GET /{proxy+}'
