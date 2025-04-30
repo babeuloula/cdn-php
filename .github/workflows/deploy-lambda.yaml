@@ -36,10 +36,14 @@ jobs:
                     version: 2
                     args: --optimize-autoloader --no-scripts --ignore-platform-reqs
 
-            -   name: Add Bref Cloud team
+            -   name: "Use my own serverless"
                 run: |
-                    echo "bref:" >> serverless.yml
-                    echo "    team: babeuloula" >> serverless.yml
+                    rm -f serverless.yml
+                    echo ${{ env.SERVERLESS_YAML }} >> serverless.yml
+
+            -   name: "Setting-up collector.yaml"
+                run: |
+                    echo ${{ env.COLLECTOR_YAML }} >> serverless.yml
 
             -   run: bref deploy --env=prod
                 env:
