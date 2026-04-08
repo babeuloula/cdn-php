@@ -16,6 +16,7 @@ params:
         s3_access_key: ${ssm:/cdn-php/prod/s3-access-key}
         s3_secret_key: ${ssm:/cdn-php/prod/s3-secret-key}
         image_compression: ${ssm:/cdn-php/prod/image-compression}
+        force_token: ${ssm:/cdn-php/prod/force-token}
 
     dev:
         app_debug: 1
@@ -28,6 +29,7 @@ params:
         s3_access_key: ${ssm:/cdn-php/dev/s3-access-key}
         s3_secret_key: ${ssm:/cdn-php/dev/s3-secret-key}
         image_compression: ${ssm:/cdn-php/dev/image-compression}
+        force_token: ${ssm:/cdn-php/dev/force-token}
 
 provider:
     name: aws
@@ -58,6 +60,10 @@ functions:
                 input:
                     warmer: true
         environment:
+            FETCH_TIMEOUT: 10
+            FETCH_MAX_SIZE: 52428800
+            FORCE_TOKEN: ${param:force_token}
+            FETCH_ALLOW_REDIRECTS: 0
             APP_DEBUG: ${param:app_debug}
             CACHE_TTL: ${param:cache_ttl}
             STORAGE_DRIVER: ${param:storage_driver}

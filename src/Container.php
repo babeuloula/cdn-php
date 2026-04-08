@@ -16,6 +16,7 @@ namespace BaBeuloula\CdnPhp;
 use Aws\S3\S3Client;
 use BaBeuloula\CdnPhp\Cache\Cache;
 use BaBeuloula\CdnPhp\Flysystem\Adapter\UrlFilesystemAdapter;
+use BaBeuloula\CdnPhp\Http\HttpFetcher;
 use BaBeuloula\CdnPhp\Processor\ImageProcessor;
 use BaBeuloula\CdnPhp\Storage\Storage;
 use Bref\Logger\StderrLogger as BrefLogger;
@@ -26,32 +27,44 @@ use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Visibility;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
 final class Container
 {
+    private const string KEY_ALLOWED_DOMAINS = 'allowed_domains';
+    private const string KEY_DOMAINS_ALIASES = 'domains_aliases';
+    private const string KEY_STORAGE_DRIVER = 'storage_driver';
+    private const string KEY_STORAGE_PATH = 'storage_path';
+    private const string KEY_CACHE_TTL = 'cache_ttl';
+    private const string KEY_IMAGE_COMPRESSION = 'image_compression';
+    private const string KEY_FETCH_TIMEOUT = 'fetch_timeout';
+    private const string KEY_FETCH_MAX_SIZE = 'fetch_max_size';
+    private const string KEY_FETCH_ALLOW_REDIRECTS = 'fetch_allow_redirects';
+    private const string KEY_FORCE_TOKEN = 'force_token';
+
     /** @var array<string, mixed> */
     private array $container = [];
 
     public function boot(): void
     {
-        $this->add(SymfonyFilesystem::class, new SymfonyFilesystem());
-
         $this->bootDomains();
         $this->bootLogger();
+        $this->bootHttpFetcher();
         $this->bootStorage();
         $this->bootImageProcessor();
         $this->bootCache();
 
+        $this->add(self::KEY_FORCE_TOKEN, $this->getEnv('FORCE_TOKEN') ?? '');
+
         $this->add(
             Cdn::class,
             new Cdn(
-                $this->get('allowed_domains'),
-                $this->get('domains_aliases'),
+                $this->get(self::KEY_ALLOWED_DOMAINS),
+                $this->get(self::KEY_DOMAINS_ALIASES),
                 $this->get(Storage::class),
                 $this->get(ImageProcessor::class),
                 $this->get(Cache::class),
                 $this->get(LoggerInterface::class),
+                $this->get(self::KEY_FORCE_TOKEN),
             ),
         );
     }
@@ -74,7 +87,7 @@ final class Container
         return $this->container[$key];
     }
 
-    private function getEnv(string $key, mixed $default = null): string
+    private function getEnv(string $key, ?string $default = null): ?string
     {
         // phpcs:ignore
         if (false === \array_key_exists($key, $_ENV)) {
@@ -90,8 +103,8 @@ final class Container
         $this->add(
             LoggerInterface::class,
             new BrefLogger(
-                $this->getEnv('LOG_LEVEL'),
-                $this->getEnv('LOG_STREAM'),
+                $this->getEnv('LOG_LEVEL') ?? 'debug',
+                $this->getEnv('LOG_STREAM') ?? 'php://stderr',
             ),
         );
     }
@@ -99,31 +112,54 @@ final class Container
     private function bootDomains(): void
     {
         $domainsAliases = [];
-        foreach (explode(',', $this->getEnv('DOMAINS_ALIASES')) as $domain) {
-            if (false === str_contains($domain, '=')) {
-                throw new \InvalidArgumentException("Domain alias must contain '='.");
+        foreach (explode(',', $this->getEnv('DOMAINS_ALIASES') ?? '') as $domain) {
+            $domain = trim($domain);
+            if ('' === $domain) {
+                continue;
             }
 
-            $parts = explode('=', $domain);
-            $domainsAliases[$parts[1]] = $parts[0];
-        }
-        $this->add('domains_aliases', $domainsAliases);
+            $parts = explode('=', $domain, 2);
+            if (2 !== \count($parts)) {
+                throw new \InvalidArgumentException("Domain alias '{$domain}' must use the format 'alias=domain'.");
+            }
 
-        $this->add('allowed_domains', explode(',', $this->getEnv('ALLOWED_DOMAINS')));
+            $domainsAliases[trim($parts[1])] = trim($parts[0]);
+        }
+        $this->add(self::KEY_DOMAINS_ALIASES, $domainsAliases);
+
+        $this->add(self::KEY_ALLOWED_DOMAINS, explode(',', $this->getEnv('ALLOWED_DOMAINS') ?? ''));
+    }
+
+    private function bootHttpFetcher(): void
+    {
+        $this->add(self::KEY_FETCH_TIMEOUT, (int) ($this->getEnv('FETCH_TIMEOUT') ?? '10'));
+        $this->add(self::KEY_FETCH_MAX_SIZE, (int) ($this->getEnv('FETCH_MAX_SIZE') ?? '52428800'));
+        $this->add(
+            self::KEY_FETCH_ALLOW_REDIRECTS,
+            true === filter_var($this->getEnv('FETCH_ALLOW_REDIRECTS') ?? '0', FILTER_VALIDATE_BOOLEAN),
+        );
+        $this->add(
+            HttpFetcher::class,
+            new HttpFetcher(
+                $this->get(self::KEY_FETCH_TIMEOUT),
+                $this->get(self::KEY_FETCH_MAX_SIZE),
+                $this->get(self::KEY_FETCH_ALLOW_REDIRECTS),
+            ),
+        );
     }
 
     private function bootStorage(): void
     {
-        $this->add('storage_driver', $this->getEnv('STORAGE_DRIVER'));
-        $this->add('storage_path', $this->getEnv('STORAGE_PATH'));
-        switch ($this->get('storage_driver')) {
+        $this->add(self::KEY_STORAGE_DRIVER, $this->getEnv('STORAGE_DRIVER'));
+        $this->add(self::KEY_STORAGE_PATH, $this->getEnv('STORAGE_PATH'));
+        switch ($this->get(self::KEY_STORAGE_DRIVER)) {
             case 's3':
                 $awsClient = new S3Client(
                     [
                         'version' => $this->getEnv('S3_VERSION', 'latest'),
                         'region' => $this->getEnv('S3_REGION'),
                         'endpoint' => $this->getEnv('S3_ENDPOINT'),
-                        'use_path_style_endpoint' => 1 === ((int) $this->getEnv('S3_PATH_STYLE_ENDPOINT', 1)),
+                        'use_path_style_endpoint' => 1 === ((int) $this->getEnv('S3_PATH_STYLE_ENDPOINT', '1')),
                         'credentials' => [
                             'key' => $this->getEnv('S3_ACCESS_KEY'),
                             'secret' => $this->getEnv('S3_SECRET_KEY'),
@@ -135,7 +171,7 @@ final class Container
                     FilesystemAdapter::class,
                     new AwsS3V3Adapter(
                         client: $awsClient,
-                        bucket: $this->getEnv('S3_BUCKET'),
+                        bucket: $this->getEnv('S3_BUCKET') ?? '',
                         visibility: new PortableVisibilityConverter(Visibility::PRIVATE),
                     ),
                 );
@@ -145,19 +181,20 @@ final class Container
                 $this->add(
                     FilesystemAdapter::class,
                     new LocalFilesystemAdapter(
-                        $this->get('storage_path'),
+                        $this->get(self::KEY_STORAGE_PATH),
                     ),
                 );
                 break;
 
             default:
-                throw new \InvalidArgumentException("Unsupported storage driver '{$this->get('storage_driver')}'.");
+                $driver = $this->get(self::KEY_STORAGE_DRIVER);
+                throw new \InvalidArgumentException("Unsupported storage driver '{$driver}'.");
         }
 
         $this->add(
             UrlFilesystemAdapter::class,
             new UrlFilesystemAdapter(
-                $this->get(SymfonyFilesystem::class),
+                $this->get(HttpFetcher::class),
             ),
         );
         $this->add(LeagueFilesystem::class, new LeagueFilesystem($this->get(FilesystemAdapter::class)));
@@ -165,7 +202,7 @@ final class Container
             Storage::class,
             new Storage(
                 $this->get(LeagueFilesystem::class),
-                $this->get(SymfonyFilesystem::class),
+                $this->get(HttpFetcher::class),
                 $this->get(LoggerInterface::class),
             ),
         );
@@ -173,26 +210,26 @@ final class Container
 
     private function bootCache(): void
     {
-        $this->add('cache_ttl', (int) $this->getEnv('CACHE_TTL'));
+        $this->add(self::KEY_CACHE_TTL, (int) $this->getEnv('CACHE_TTL'));
         $this->add(
             Cache::class,
             new Cache(
                 $this->get(Storage::class),
-                $this->get('cache_ttl'),
+                $this->get(self::KEY_CACHE_TTL),
             ),
         );
     }
 
     private function bootImageProcessor(): void
     {
-        $this->add('image_compression', (int) $this->getEnv('IMAGE_COMPRESSION'));
+        $this->add(self::KEY_IMAGE_COMPRESSION, (int) $this->getEnv('IMAGE_COMPRESSION'));
         $this->add(
             ImageProcessor::class,
             new ImageProcessor(
                 $this->get(FilesystemAdapter::class),
                 $this->get(UrlFilesystemAdapter::class),
                 $this->get(LoggerInterface::class),
-                $this->get('image_compression'),
+                $this->get(self::KEY_IMAGE_COMPRESSION),
             ),
         );
     }

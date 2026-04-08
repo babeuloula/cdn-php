@@ -17,6 +17,14 @@ use BaBeuloula\CdnPhp\Enum\WatermarkPosition;
 
 final class QueryParams
 {
+    public const string PARAM_WIDTH = 'w';
+    public const string PARAM_HEIGHT = 'h';
+    public const string PARAM_WATERMARK_URL = 'wu';
+    public const string PARAM_WATERMARK_POSITION = 'wp';
+    public const string PARAM_WATERMARK_SIZE = 'ws';
+    public const string PARAM_WATERMARK_OPACITY = 'wo';
+    public const int MAX_DIMENSION = 5000;
+
     public readonly ?string $watermarkUrl;
     public readonly int $watermarkSize;
     public readonly int $watermarkOpacity;
@@ -59,12 +67,12 @@ final class QueryParams
     {
         // phpcs:disable
         return new self(
-            empty($query['w']) ? 0 : ((int) $query['w']),
-            empty($query['h']) ? null : ((int) $query['h']),
-            empty($query['wu']) ? null : ((string) $query['wu']),
-            empty($query['wp']) ? WatermarkPosition::default() : (WatermarkPosition::tryFrom($query['wp']) ?? WatermarkPosition::default()),
-            empty($query['ws']) ? 75 : ((int) $query['ws']),
-            empty($query['wo']) ? 50 : ((int) $query['wo']),
+            empty($query[self::PARAM_WIDTH]) ? 0 : min((int) $query[self::PARAM_WIDTH], self::MAX_DIMENSION),
+            empty($query[self::PARAM_HEIGHT]) ? null : min((int) $query[self::PARAM_HEIGHT], self::MAX_DIMENSION),
+            empty($query[self::PARAM_WATERMARK_URL]) ? null : ((string) $query[self::PARAM_WATERMARK_URL]),
+            empty($query[self::PARAM_WATERMARK_POSITION]) ? WatermarkPosition::default() : (WatermarkPosition::tryFrom($query[self::PARAM_WATERMARK_POSITION]) ?? WatermarkPosition::default()),
+            empty($query[self::PARAM_WATERMARK_SIZE]) ? 75 : ((int) $query[self::PARAM_WATERMARK_SIZE]),
+            empty($query[self::PARAM_WATERMARK_OPACITY]) ? 50 : ((int) $query[self::PARAM_WATERMARK_OPACITY]),
         );
         // phpcs:enable
     }
@@ -73,8 +81,8 @@ final class QueryParams
     public function toArray(): array
     {
         $params = [
-            'w' => $this->width,
-            'h' => $this->height,
+            self::PARAM_WIDTH => $this->width,
+            self::PARAM_HEIGHT => $this->height,
             'fit' => 'max',
         ];
 

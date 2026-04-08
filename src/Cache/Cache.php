@@ -28,8 +28,6 @@ final class Cache
 
     public function createResponse(string $path, bool $supportWebp, Request $request): Response
     {
-        $stream = $this->storage->readStream($path);
-
         $lastModified = (new \DateTimeImmutable())->setTimestamp($this->storage->lastModified($path));
 
         $response = new StreamedResponse();
@@ -38,21 +36,29 @@ final class Cache
             (true === $supportWebp) ? 'image/webp' : $this->storage->mimeType($path),
         );
         $response->headers->set('Content-Length', (string) $this->storage->fileSize($path));
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->setPublic();
+        $response->headers->set('Vary', 'Accept');
         $response->setMaxAge($this->ttl);
         $response->setExpires((new \DateTimeImmutable())->modify("+$this->ttl seconds"));
         $response->setLastModified($lastModified);
-        $response->setEtag(md5((string) $lastModified->getTimestamp()));
+        $response->setEtag(
+            md5($path . ':' . $this->storage->fileSize($path) . ':' . $lastModified->getTimestamp()),
+        );
         $response->isNotModified($request);
 
         $response->setCallback(
-            static function () use ($stream) {
+            function () use ($path) {
                 // @codeCoverageIgnoreStart
-                if (0 !== ftell($stream)) {
-                    rewind($stream);
+                $stream = $this->storage->readStream($path);
+                try {
+                    if (0 !== ftell($stream)) {
+                        rewind($stream);
+                    }
+                    fpassthru($stream);
+                } finally {
+                    fclose($stream);
                 }
-                fpassthru($stream);
-                fclose($stream);
                 // @codeCoverageIgnoreEnd
             },
         );

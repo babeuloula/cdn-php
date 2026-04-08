@@ -39,6 +39,36 @@ class QueryParamsTest extends TestCase
     }
 
     #[Test]
+    public function canClampDimensions(): void
+    {
+        $params = QueryParams::fromArray(['w' => 99999, 'h' => 99999]);
+        static::assertSame(QueryParams::MAX_DIMENSION, $params->width);
+        static::assertSame(QueryParams::MAX_DIMENSION, $params->height);
+    }
+
+    #[Test]
+    public function canFitMaxWhenWidthIsZeroWithHeight(): void
+    {
+        // fit='crop' requires BOTH width > 0 AND height set; width=0 must stay 'max'
+        $array = QueryParams::fromArray(['w' => 0, 'h' => 100])->toArray();
+        static::assertSame('max', $array['fit']);
+    }
+
+    #[Test]
+    public function canFallbackToDefaultWatermarkPosition(): void
+    {
+        $params = QueryParams::fromArray(['wu' => 'example.com/wm.jpg', 'wp' => 'invalid-position']);
+        static::assertSame(WatermarkPosition::default(), $params->watermarkPosition);
+    }
+
+    #[Test]
+    public function canParseWatermarkUrlWithPort(): void
+    {
+        $params = QueryParams::fromArray(['wu' => 'http://example.com:8080/watermark.jpg']);
+        static::assertSame('example.com:8080/watermark.jpg', $params->watermarkUrl);
+    }
+
+    #[Test]
     public function canConvertToAnArray(): void
     {
         static::assertEquals(

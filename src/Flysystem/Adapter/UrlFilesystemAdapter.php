@@ -13,22 +13,25 @@ declare(strict_types=1);
 
 namespace BaBeuloula\CdnPhp\Flysystem\Adapter;
 
+use BaBeuloula\CdnPhp\Http\HttpFetcher;
 use League\Flysystem\Config;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemAdapter;
-use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
 final class UrlFilesystemAdapter implements FilesystemAdapter
 {
-    public function __construct(private readonly SymfonyFilesystem $symfonyFilesystem)
+    public function __construct(private readonly HttpFetcher $httpFetcher)
     {
     }
 
     public function fileExists(string $path): bool
     {
-        $path = 'https://' . $path;
-
-        return str_contains(get_headers($path)[0] ?? '', '200 OK');
+        try {
+            $this->httpFetcher->fetch('https://' . $path);
+            return true;
+        } catch (\RuntimeException) {
+            return false;
+        }
     }
 
     public function directoryExists(string $path): bool
@@ -48,7 +51,7 @@ final class UrlFilesystemAdapter implements FilesystemAdapter
 
     public function read(string $path): string
     {
-        return $this->symfonyFilesystem->readFile('https://' . $path);
+        return $this->httpFetcher->fetch('https://' . $path);
     }
 
     public function readStream(string $path)

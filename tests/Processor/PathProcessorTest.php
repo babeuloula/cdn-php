@@ -65,4 +65,21 @@ class PathProcessorTest extends TestCase
 
         yield ['w100/h100', ['w' => 100, 'h' => 100]];
     }
+
+    #[Test]
+    public function canGetPathWithDifferentExtensions(): void
+    {
+        foreach (['png', 'gif', 'webp'] as $ext) {
+            $imageUri = "https://example.com/image.{$ext}";
+            $decoder = new UriDecoder($imageUri);
+            $pathProcessor = new PathProcessor($decoder);
+
+            $expectedFilename = md5($imageUri) . ".{$ext}";
+            static::assertSame(
+                static::TEST_DOMAIN . '/w0/' . $expectedFilename,
+                $pathProcessor->getPath(),
+                "Failed for extension: {$ext}",
+            );
+        }
+    }
 }
