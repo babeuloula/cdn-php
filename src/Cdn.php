@@ -17,6 +17,7 @@ use BaBeuloula\CdnPhp\Cache\Cache;
 use BaBeuloula\CdnPhp\Decoder\UriDecoder;
 use BaBeuloula\CdnPhp\Exception\EmptyUriException;
 use BaBeuloula\CdnPhp\Exception\FileNotFoundException;
+use BaBeuloula\CdnPhp\Exception\FileTooLargeException;
 use BaBeuloula\CdnPhp\Exception\InvalidUriException;
 use BaBeuloula\CdnPhp\Exception\NotAllowedDomainException;
 use BaBeuloula\CdnPhp\Exception\NotSupportedExtensionException;
@@ -40,6 +41,7 @@ final class Cdn
         private readonly ImageProcessor $imageProcessor,
         private readonly Cache $cache,
         private readonly LoggerInterface $logger,
+        private readonly string $forceToken = '',
     ) {
     }
 
@@ -61,12 +63,10 @@ final class Cdn
 
         $pathProcessor = new PathProcessor($decoder);
 
-        $this->storage->setDecoder($decoder);
-
         $supportWebp = (true === str_contains((string) $request->headers->get('Accept'), 'image/webp'));
 
         $cachedPath = $pathProcessor->getPath($supportWebp);
-        $force = $request->query->getBoolean('force');
+        $force = $this->resolveForce($request);
 
         if (false === $this->storage->exists($cachedPath) || true === $force) {
             if (true === $force) {
@@ -74,18 +74,37 @@ final class Cdn
             }
 
             try {
-                $originalPath = $this->storage->fetchImage($decoder->getImageUrl(), $force);
-            } catch (FileNotFoundException $e) {
+                $originalPath = $this->storage->fetchImage($decoder->getImageUrl(), $decoder->getDomain(), $force);
+            } catch (FileTooLargeException | FileNotFoundException $e) {
                 return new Response($e->getMessage(), $e->getCode());
             }
 
-            $processedImage = $this->imageProcessor->process($originalPath, $decoder->getParams());
-            $this->storage->save($cachedPath, $this->storage->read($processedImage));
+            try {
+                $processedImage = $this->imageProcessor->process($originalPath, $decoder->getParams());
+                $this->storage->save($cachedPath, $this->storage->read($processedImage));
+            } catch (\Throwable $e) {
+                $this->logger->error(
+                    'Image processing failed: {message}',
+                    ['message' => $e->getMessage(), 'exception' => $e],
+                );
+                return new Response('Image processing failed.', Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
 
-        $this->logger->info('Serve the image: {cachedPath}', ['cachedPath' => $cachedPath]);
+        $this->logger->debug('Serve the image: {cachedPath}', ['cachedPath' => $cachedPath]);
 
         return $this->cache->createResponse($cachedPath, $supportWebp, $request);
+    }
+
+    private function resolveForce(Request $request): bool
+    {
+        if (false === $request->query->getBoolean('force')) {
+            return false;
+        }
+        if ('' !== $this->forceToken && $request->query->get('token') !== $this->forceToken) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -111,6 +130,15 @@ final class Cdn
         $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), PATHINFO_EXTENSION));
         if (false === \in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'webp'], true)) {
             throw new NotSupportedExtensionException($extension);
+        }
+
+        if (null !== $decoder->getParams()->watermarkUrl) {
+            $watermarkDomain = parse_url('https://' . $decoder->getParams()->watermarkUrl, PHP_URL_HOST);
+            if (false === \is_string($watermarkDomain)
+                || false === \in_array($watermarkDomain, $this->allowedDomains, true)
+            ) {
+                throw new NotAllowedDomainException($decoder->getParams()->watermarkUrl);
+            }
         }
     }
 }

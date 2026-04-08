@@ -78,4 +78,26 @@ class UriDecoderTest extends TestCase
 
         static::assertInstanceOf(QueryParams::class, $decoder->getParams());
     }
+
+    #[Test]
+    public function canHandleUnknownAlias(): void
+    {
+        // An alias not present in the map results in an invalid URL (domain replaced by empty string)
+        $decoder = new UriDecoder(
+            '_nonexistent_/example.com/image.jpg',
+            ['other_alias' => 'example.com'],
+        );
+
+        static::assertStringStartsWith('https://', $decoder->getUri());
+        static::assertStringNotContainsString('_nonexistent_', $decoder->getUri());
+    }
+
+    #[Test]
+    public function canHandleNonHttpScheme(): void
+    {
+        // ftp:// is not stripped, so it ends up wrapped in https:// and will fail URL validation
+        $decoder = new UriDecoder('ftp://example.com/image.jpg');
+
+        static::assertSame('https://ftp://example.com/image.jpg', $decoder->getUri());
+    }
 }

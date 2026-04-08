@@ -117,15 +117,95 @@ class CdnTest extends TestCase
     }
 
     #[Test]
+    public function canHandleRequestWithAllowedWatermarkDomain(): void
+    {
+        // Watermark from an allowed domain must not be blocked
+        $params = http_build_query(['wu' => static::TEST_WATERMARK_URL]);
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI . '?' . $params);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function canHandleRequestWithUppercaseExtension(): void
+    {
+        // Extension check must be case-insensitive (.JPG treated like .jpg)
+        $request = Request::create('http://mycdn.com/https://example.com/image.JPG');
+
+        $response = $this->cdn->handleRequest($request);
+
+        // 404 (image not mocked), not 400 (unsupported extension)
+        static::assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function cantHandleRequestWithNonHttpScheme(): void
+    {
+        // ftp:// is not stripped by UriDecoder, so the parsed domain becomes "ftp" → not in allowedDomains
+        $request = Request::create('http://mycdn.com/ftp://example.com/image.jpg');
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function cantHandleRequestWithNotAllowedWatermarkDomain(): void
+    {
+        $params = http_build_query(['wu' => 'https://not-allowed.com/watermark.jpg']);
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI . '?' . $params);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
+    }
+
+    #[Test]
     public function canHandleRequestAndForceReFetch(): void
     {
-        $request = Request::create(
-            'http://mycdn.com/' . static::TEST_BASE_URI . '?' . http_build_query(['force' => true])
-        );
+        $params = http_build_query(['force' => true, 'token' => static::TEST_FORCE_TOKEN]);
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI . '?' . $params);
 
         $response = $this->cdn->handleRequest($request);
 
         static::assertSame('image/jpeg', $response->headers->get('Content-Type'));
         static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function cantForceReFetchWithWrongToken(): void
+    {
+        // Pre-populate cache
+        $this->cdn->handleRequest(Request::create('http://mycdn.com/' . static::TEST_BASE_URI));
+
+        // Force with wrong token is silently ignored
+        $params = http_build_query(['force' => true, 'token' => 'wrong-token']);
+        $response = $this->cdn->handleRequest(
+            Request::create('http://mycdn.com/' . static::TEST_BASE_URI . '?' . $params)
+        );
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function cantHandleRequestWithTooLargeImage(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_TOO_LARGE_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_REQUEST_ENTITY_TOO_LARGE, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function cantHandleRequestWithCorruptImage(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_CORRUPT_IMAGE_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
     }
 }

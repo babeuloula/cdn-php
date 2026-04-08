@@ -16,7 +16,8 @@
          failOnPhpunitNotice="true"
 >
     <php>
-        <server name="LOG_STREAM" value="/tmp/cdn-php.log" force="true" />
+        <server name="LOG_STREAM" value="/dev/null" force="true" />
+        <server name="FORCE_TOKEN" value="test-force-token" force="true" />
     </php>
 
     <testsuites>
@@ -31,7 +32,7 @@
         </include>
         <exclude>
             <file>src/Flysystem/Adapter/UrlFilesystemAdapter.php</file>
-            <file>src/ContainerConfig.php</file>
+            <file>src/Http/HttpFetcher.php</file>
         </exclude>
     </source>
 </phpunit>

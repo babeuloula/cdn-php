@@ -30,21 +30,6 @@ final class PathProcessor
         return $this->path . ((true === $supportWebp) ? '.webp' : '');
     }
 
-    /**
-     * @param mixed[] $array
-     *
-     * @return mixed[]
-     */
-    private function arrayMapAssoc(callable $callback, array $array): array
-    {
-        return array_map(
-            static function (mixed $key) use ($callback, $array) {
-                return $callback($key, $array[$key]);
-            },
-            array_keys($array),
-        );
-    }
-
     private function generatePath(): void
     {
         $params = $this->decoder->getParams()->toArray();
@@ -54,7 +39,11 @@ final class PathProcessor
             $params['mark'] = (new AsciiSlugger())->slug($this->decoder->getParams()->watermarkUrl)->toString();
         }
 
-        $path = implode('/', $this->arrayMapAssoc(static fn ($k, $v) => "$k$v", $params));
+        $parts = [];
+        foreach ($params as $key => $value) {
+            $parts[] = "{$key}{$value}";
+        }
+        $path = implode('/', $parts);
 
         $extension = pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION);
         $filename = md5($this->decoder->getImageUrl()) . '.' . $extension;

@@ -53,6 +53,8 @@ class CacheTest extends TestCase
         static::assertGreaterThan(0, $response->headers->get('Content-Length'));
         static::assertSame('max-age=' . $defaultTtl . ', public', $response->headers->get('Cache-Control'));
         static::assertNotNull($response->headers->get('Last-Modified'));
+        static::assertSame('Accept', $response->headers->get('Vary'));
+        static::assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
     }
 
     #[Test]
@@ -64,5 +66,22 @@ class CacheTest extends TestCase
         $response = $cache->createResponse(static::TEST_FILENAME, true, new Request());
 
         static::assertSame('image/webp', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canCreateANotModifiedResponse(): void
+    {
+        /** @var Cache $cache */
+        $cache = $this->getContainer(Cache::class);
+
+        $firstResponse = $cache->createResponse(static::TEST_FILENAME, false, new Request());
+        $etag = $firstResponse->headers->get('ETag');
+
+        $request = new Request();
+        $request->headers->set('If-None-Match', $etag);
+
+        $response = $cache->createResponse(static::TEST_FILENAME, false, $request);
+
+        static::assertSame(Response::HTTP_NOT_MODIFIED, $response->getStatusCode());
     }
 }

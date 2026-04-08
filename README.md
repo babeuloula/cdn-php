@@ -20,6 +20,9 @@ It supports fetching, optimizing, caching and serving images dynamically while e
   - `wo` (watermark opacity percentage, default: 50%)
 - **Smart Storage Structure:** Images are stored based on query parameters.
 - **Serverless Compatible:** Optimized to run in a serverless environment.
+- **SSRF Protection:** Only domains listed in `ALLOWED_DOMAINS` can be fetched (applies to both source images and watermarks).
+- **Fetch Hardening:** Configurable timeout, maximum file size, and redirect policy to prevent slow-loris, image-bomb, and SSRF-via-redirect attacks.
+- **Force Re-fetch Protection:** Optional secret token required to bypass the cache (`FORCE_TOKEN`).
 
 ## Serverless
 
@@ -77,12 +80,12 @@ APP_DEBUG=0
 ALLOWED_DOMAINS=mysite.com,another-site.com
 DOMAINS_ALIASES=another-site.com/secret-images=another
 
-STORAGE_TYPE=local # "local" or "s3"
+STORAGE_DRIVER=local # "local" or "s3"
 
 # Local storage configuration
 STORAGE_PATH=/var/task/.cache/driver/local
 
-# S3 storage configuration (if STORAGE_TYPE=s3)
+# S3 storage configuration (if STORAGE_DRIVER=s3)
 S3_BUCKET=my-bucket
 S3_ENDPOINT=https://s3.amazonaws.com
 S3_REGION=fr-par
@@ -93,11 +96,20 @@ S3_SECRET_KEY=your-secret-key
 CACHE_TTL=31536000
 
 # Logging
-LOG_STREAM=/srv/.cache/log/cdn-php.log
-LOG_LEVEL=debug
+LOG_STREAM=php://stderr
+LOG_LEVEL=info
 
 # Compression
 IMAGE_COMPRESSION=75
+
+# HTTP fetch (timeout in seconds, max size in bytes)
+FETCH_TIMEOUT=10
+FETCH_MAX_SIZE=52428800
+# Set to 1 only if your image origins serve via redirects (SSRF risk — see security notes)
+FETCH_ALLOW_REDIRECTS=0
+
+# Force re-fetch token (empty = no protection, set to a secret to require ?token=<value>)
+FORCE_TOKEN=
 ```
 
 ## Running with Docker
@@ -127,7 +139,21 @@ The CDN will:
 - Optimize and compress it
 - Convert it to WebP if supported
 - Store it based on parameters
-- Serve it with proper caching headers
+- Serve it with proper caching headers (`Cache-Control`, `ETag`, `Vary: Accept`)
+
+### Force re-fetch
+
+To bypass the cache and re-fetch the source image:
+
+```
+https://cdn-php.loc/https://www.mysite.com/image.png?force=true
+```
+
+If `FORCE_TOKEN` is configured, the token must be provided:
+
+```
+https://cdn-php.loc/https://www.mysite.com/image.png?force=true&token=<your-token>
+```
 
 ## Running Tests
 

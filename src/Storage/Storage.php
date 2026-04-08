@@ -13,52 +13,44 @@ declare(strict_types=1);
 
 namespace BaBeuloula\CdnPhp\Storage;
 
-use BaBeuloula\CdnPhp\Decoder\UriDecoder;
 use BaBeuloula\CdnPhp\Exception\FileNotFoundException;
+use BaBeuloula\CdnPhp\Exception\FileTooLargeException;
+use BaBeuloula\CdnPhp\Http\HttpFetcher;
 use League\Flysystem\Filesystem;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
 final class Storage
 {
-    private UriDecoder $decoder;
-
     public function __construct(
         private readonly Filesystem $filesystem,
-        private readonly SymfonyFilesystem $symfonyFilesystem,
+        private readonly HttpFetcher $httpFetcher,
         private readonly LoggerInterface $logger,
     ) {
     }
 
-    public function setDecoder(UriDecoder $decoder): self
+    public function fetchImage(string $imageUrl, string $domain, bool $force = false): string
     {
-        $this->decoder = $decoder;
-
-        return $this;
-    }
-
-    public function fetchImage(string $imageUrl, bool $force = false): string
-    {
-        $this->logger->info('Fetching image: {imageUrl}', ['imageUrl' => $imageUrl]);
+        $this->logger->debug('Fetching image: {imageUrl}', ['imageUrl' => $imageUrl]);
 
         $extension = pathinfo($imageUrl, PATHINFO_EXTENSION);
         $filename = md5($imageUrl) . '.' . $extension;
         $path = sprintf(
             '%s/original/%s',
-            $this->decoder->getDomain(),
+            $domain,
             $filename,
         );
 
         if (true === $this->exists($path) && false === $force) {
-            $this->logger->info('Original image already saved: {path}', ['path' => $path]);
+            $this->logger->debug('Original image already saved: {path}', ['path' => $path]);
 
             return $path;
         }
 
         try {
-            $content = $this->symfonyFilesystem->readFile($imageUrl);
-        } catch (IOException $e) {
+            $content = $this->httpFetcher->fetch($imageUrl);
+        } catch (FileTooLargeException $e) {
+            throw $e;
+        } catch (\RuntimeException $e) {
             throw new FileNotFoundException($imageUrl, $e);
         }
 
@@ -95,7 +87,7 @@ final class Storage
 
     public function save(string $path, string $content): void
     {
-        $this->logger->info('Save image on storage: {path}', ['path' => $path]);
+        $this->logger->debug('Save image on storage: {path}', ['path' => $path]);
 
         $this->filesystem->write($path, $content);
     }
