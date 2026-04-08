@@ -39,7 +39,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $symfonyFilesystemMock = $this->createPartialMock(SymfonyFilesystem::class, ['readFile']);
+        $symfonyFilesystemMock = $this->createStub(SymfonyFilesystem::class);
 
         $symfonyFilesystemMock
             ->method('readFile')

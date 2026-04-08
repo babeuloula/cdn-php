@@ -46,7 +46,7 @@ jobs:
                 with:
                     interaction: no
                     dev: no
-                    php_version: "8.3"
+                    php_version: "8.4"
                     version: 2
                     container_workdir: '/app/build'
                     args: --optimize-autoloader --no-scripts --ignore-platform-reqs

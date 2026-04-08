@@ -12,6 +12,8 @@
          failOnPhpunitDeprecation="true"
          failOnRisky="true"
          failOnWarning="true"
+         failOnNotice="true"
+         failOnPhpunitNotice="true"
 >
     <php>
         <server name="LOG_STREAM" value="/tmp/cdn-php.log" force="true" />
