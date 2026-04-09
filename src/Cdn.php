@@ -63,7 +63,7 @@ final class Cdn
 
         $pathProcessor = new PathProcessor($decoder);
 
-        $supportWebp = (true === str_contains((string) $request->headers->get('Accept'), 'image/webp'));
+        $supportWebp = $this->supportsWebp($request);
 
         $cachedPath = $pathProcessor->getPath($supportWebp);
         $force = $this->resolveForce($request);
@@ -80,7 +80,7 @@ final class Cdn
             }
 
             try {
-                $processedImage = $this->imageProcessor->process($originalPath, $decoder->getParams());
+                $processedImage = $this->imageProcessor->process($originalPath, $decoder->getParams(), $supportWebp);
                 $this->storage->save($cachedPath, $this->storage->read($processedImage));
             } catch (\Throwable $e) {
                 $this->logger->error(
@@ -94,6 +94,11 @@ final class Cdn
         $this->logger->debug('Serve the image: {cachedPath}', ['cachedPath' => $cachedPath]);
 
         return $this->cache->createResponse($cachedPath, $supportWebp, $request);
+    }
+
+    private function supportsWebp(Request $request): bool
+    {
+        return true === str_contains((string) $request->headers->get('Accept'), 'image/webp');
     }
 
     private function resolveForce(Request $request): bool

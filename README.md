@@ -9,7 +9,8 @@ It supports fetching, optimizing, caching and serving images dynamically while e
 
 - **Domain Restriction:** Allows defining authorized domains via an environment variable (_ALLOWED_DOMAINS_).
 - **On-the-Fly Image Processing:** Fetches images from a URL, compresses them lossless, and caches them.
-- **WebP Support:** Converts images to WebP format if supported by the requesting client.
+- **WebP Support:** Converts images to WebP format if supported by the requesting client (GIFs are always served as GIF to preserve animation).
+- **Animated GIF Support:** Preserves all frames of animated GIFs through resize operations.
 - **Configurable Storage:** Supports both local filesystem and S3-compatible storage.
 - **Dynamic Image Resizing:** Resize images via query parameters:
   - `w` (width)
