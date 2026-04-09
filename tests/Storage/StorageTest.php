@@ -42,7 +42,7 @@ class StorageTest extends TestCase
     {
         static::assertSame(
             static::TEST_ORIGINAL_PATH,
-            $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain()),
+            $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain()),
         );
     }
 
@@ -53,7 +53,7 @@ class StorageTest extends TestCase
 
         static::assertSame(
             static::TEST_ORIGINAL_PATH,
-            $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain()),
+            $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain()),
         );
     }
 
@@ -62,7 +62,7 @@ class StorageTest extends TestCase
     {
         $this->storage->save(static::TEST_ORIGINAL_PATH, 'stale_content');
 
-        $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain(), true);
+        $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain(), true);
 
         static::assertNotSame('stale_content', $this->storage->read(static::TEST_ORIGINAL_PATH));
     }
@@ -76,13 +76,13 @@ class StorageTest extends TestCase
         $storage = $this->getContainer(Storage::class);
 
         static::expectException(FileNotFoundException::class);
-        $storage->fetchImage($decoder->getImageUrl(), $decoder->getDomain());
+        $storage->fetchFile($decoder->getImageUrl(), $decoder->getDomain());
     }
 
     #[Test]
     public function canReadAnImage(): void
     {
-        $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain());
+        $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain());
 
         static::assertIsString($this->storage->read(static::TEST_ORIGINAL_PATH));
     }
@@ -90,7 +90,7 @@ class StorageTest extends TestCase
     #[Test]
     public function canReadAsStreamAnImage(): void
     {
-        $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain());
+        $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain());
 
         static::assertIsResource($this->storage->readStream(static::TEST_ORIGINAL_PATH));
     }
@@ -98,7 +98,7 @@ class StorageTest extends TestCase
     #[Test]
     public function canGetMimetypeOfAnImage(): void
     {
-        $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain());
+        $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain());
 
         static::assertSame(
             'image/jpeg',
@@ -109,7 +109,7 @@ class StorageTest extends TestCase
     #[Test]
     public function canGetFilesizeOfAnImage(): void
     {
-        $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain());
+        $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain());
 
         static::assertGreaterThan(0, $this->storage->fileSize(static::TEST_ORIGINAL_PATH));
     }
@@ -117,7 +117,7 @@ class StorageTest extends TestCase
     #[Test]
     public function canGetLastModifiedOfAnImage(): void
     {
-        $this->storage->fetchImage($this->decoder->getImageUrl(), $this->decoder->getDomain());
+        $this->storage->fetchFile($this->decoder->getImageUrl(), $this->decoder->getDomain());
 
         static::assertGreaterThan(0, $this->storage->lastModified(static::TEST_ORIGINAL_PATH));
     }

@@ -12,6 +12,7 @@
         "league/flysystem": "^3.29",
         "league/flysystem-aws-s3-v3": "^3.0",
         "league/glide": "^2.3",
+        "matthiasmullie/minify": "^1.3",
         "symfony/dotenv": "^7.4",
         "symfony/error-handler": "^7.4",
         "symfony/filesystem": "^7.4",

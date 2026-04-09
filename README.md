@@ -11,6 +11,10 @@ It supports fetching, optimizing, caching and serving images dynamically while e
 - **On-the-Fly Image Processing:** Fetches images from a URL, compresses them lossless, and caches them.
 - **WebP Support:** Converts images to WebP format if supported by the requesting client (GIFs are always served as GIF to preserve animation).
 - **Animated GIF Support:** Preserves all frames of animated GIFs through resize operations.
+- **Static Asset Support:** Fetches, optimizes, and serves JS/CSS/font files with proper cache headers:
+  - **CSS & JS minification:** Automatically minifies `.css` and `.js` files to reduce file size.
+  - **Font passthrough:** Serves `.woff`, `.woff2`, `.ttf`, `.eot`, `.otf` with long-term caching.
+  - **SVG & ICO passthrough:** Serves `.svg` and `.ico` with long-term caching.
 - **Configurable Storage:** Supports both local filesystem and S3-compatible storage.
 - **Dynamic Image Resizing:** Resize images via query parameters:
   - `w` (width)
@@ -19,7 +23,7 @@ It supports fetching, optimizing, caching and serving images dynamically while e
   - `wp` (watermark position, default: center)
   - `ws` (watermark size percentage, default: 75%)
   - `wo` (watermark opacity percentage, default: 50%)
-- **Smart Storage Structure:** Images are stored based on query parameters.
+- **Smart Storage Structure:** Assets are stored based on query parameters.
 - **Serverless Compatible:** Optimized to run in a serverless environment.
 - **SSRF Protection:** Only domains listed in `ALLOWED_DOMAINS` can be fetched (applies to both source images and watermarks).
 - **Fetch Hardening:** Configurable timeout, maximum file size, and redirect policy to prevent slow-loris, image-bomb, and SSRF-via-redirect attacks.
@@ -129,6 +133,8 @@ https://cdn-php.loc
 
 ## Usage
 
+### Images
+
 You can fetch an optimized image by calling:
 
 ```
@@ -141,6 +147,38 @@ The CDN will:
 - Convert it to WebP if supported
 - Store it based on parameters
 - Serve it with proper caching headers (`Cache-Control`, `ETag`, `Vary: Accept`)
+
+### Static Assets
+
+You can also use the CDN to serve and optimize your static assets:
+
+```
+# CSS (automatically minified)
+https://cdn-php.loc/https://www.mysite.com/style.css
+
+# JavaScript (automatically minified)
+https://cdn-php.loc/https://www.mysite.com/app.js
+
+# Fonts (served as-is with long-term caching)
+https://cdn-php.loc/https://www.mysite.com/font.woff2
+
+# SVG / ICO (served as-is with long-term caching)
+https://cdn-php.loc/https://www.mysite.com/logo.svg
+```
+
+Supported extensions: `css`, `js`, `woff`, `woff2`, `ttf`, `eot`, `otf`, `svg`, `ico`, `xml`
+
+CSS and JS files are automatically minified (comments and unnecessary whitespace removed) before being cached, reducing their size for faster delivery.
+
+### Compression (GZIP)
+
+**With the serverless setup (Bref / API Gateway):** GZIP compression is handled automatically by API Gateway via the `minimumCompressionSize` setting in `serverless.yml`. Responses larger than 1 KB are compressed transparently based on the client's `Accept-Encoding` header — no application-level changes needed.
+
+**Without serverless (Docker, Nginx, Apache…):** The CDN itself does not add `Content-Encoding: gzip` headers. You must enable compression at the web server or reverse-proxy level:
+
+- **Nginx:** `gzip on; gzip_types text/css application/javascript font/woff2 image/svg+xml;`
+- **Apache:** enable `mod_deflate` with the equivalent `AddOutputFilterByType` directive
+- **Caddy:** compression is enabled by default
 
 ### Force re-fetch
 
@@ -180,14 +218,6 @@ make test-security
 # Execute tests suite
 make test
 ```
-
-## Future works
-
-- [ ] Create a Dockerfile for serverless functions
-- [ ] Add a CLI with [Silly](https://github.com/mnapoli/silly)
-  - [ ] Write a command to clear CDN cache folder
-  - [ ] Write a command to clear all CDN images
-  - [ ] Write a command to display some stats
 
 ## License
 

@@ -45,7 +45,7 @@ class CacheTest extends TestCase
         /** @var Cache $cache */
         $cache = $this->getContainer(Cache::class);
 
-        $response = $cache->createResponse(static::TEST_FILENAME, false, new Request());
+        $response = $cache->createResponse(static::TEST_FILENAME, false, false, new Request());
 
         static::assertInstanceOf(StreamedResponse::class, $response);
         static::assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -63,9 +63,31 @@ class CacheTest extends TestCase
         /** @var Cache $cache */
         $cache = $this->getContainer(Cache::class);
 
-        $response = $cache->createResponse(static::TEST_FILENAME, true, new Request());
+        $response = $cache->createResponse(static::TEST_FILENAME, false, true, new Request());
 
         static::assertSame('image/webp', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canCreateAResponseWithAvifSupport(): void
+    {
+        /** @var Cache $cache */
+        $cache = $this->getContainer(Cache::class);
+
+        $response = $cache->createResponse(static::TEST_FILENAME, true, false, new Request());
+
+        static::assertSame('image/avif', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canCreateAResponseWithoutVaryAccept(): void
+    {
+        /** @var Cache $cache */
+        $cache = $this->getContainer(Cache::class);
+
+        $response = $cache->createResponse(static::TEST_FILENAME, false, false, new Request(), varyAccept: false);
+
+        static::assertNull($response->headers->get('Vary'));
     }
 
     #[Test]
@@ -74,13 +96,13 @@ class CacheTest extends TestCase
         /** @var Cache $cache */
         $cache = $this->getContainer(Cache::class);
 
-        $firstResponse = $cache->createResponse(static::TEST_FILENAME, false, new Request());
+        $firstResponse = $cache->createResponse(static::TEST_FILENAME, false, false, new Request());
         $etag = $firstResponse->headers->get('ETag');
 
         $request = new Request();
         $request->headers->set('If-None-Match', $etag);
 
-        $response = $cache->createResponse(static::TEST_FILENAME, false, $request);
+        $response = $cache->createResponse(static::TEST_FILENAME, false, false, $request);
 
         static::assertSame(Response::HTTP_NOT_MODIFIED, $response->getStatusCode());
     }

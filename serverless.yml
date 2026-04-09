@@ -37,6 +37,7 @@ provider:
     apiGateway:
         binaryMediaTypes:
             - '*/*'
+        minimumCompressionSize: 1024 # GZIP responses larger than 1 KB
     environment:
         BREF_BINARY_RESPONSES: '1'
 

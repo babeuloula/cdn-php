@@ -78,7 +78,7 @@ class CdnTest extends TestCase
     #[Test]
     public function cantHandleRequestNotSupportedExtension(): void
     {
-        $request = Request::create('http://mycdn.com/http://example.com/style.css');
+        $request = Request::create('http://mycdn.com/http://example.com/page.php');
 
         $response = $this->cdn->handleRequest($request);
 
@@ -243,5 +243,143 @@ class CdnTest extends TestCase
         // Animated WebP sources must preserve animation and stay as WebP
         static::assertSame(Response::HTTP_OK, $response->getStatusCode());
         static::assertSame('image/webp', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithCssAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_CSS_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('text/css', $response->headers->get('Content-Type'));
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithJsAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_JS_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertStringContainsString('javascript', (string) $response->headers->get('Content-Type'));
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithFontAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_WOFF2_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithXmlAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_XML_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function staticAssetsIgnoreWebpAcceptHeader(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_CSS_URI);
+        $request->headers->set('Accept', 'image/webp,*/*');
+
+        $response = $this->cdn->handleRequest($request);
+
+        // CSS assets must never be served as WebP regardless of Accept header
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('text/css', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithAvifOutput(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI);
+        $request->headers->set('Accept', 'image/avif,*/*');
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/avif', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function avifOutputTakesPriorityOverWebp(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI);
+        $request->headers->set('Accept', 'image/avif,image/webp,*/*');
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/avif', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canRecognizeHeicExtensionAsValidImageFormat(): void
+    {
+        // HEIC is a valid image extension — must not be rejected with 400 (unsupported extension)
+        $request = Request::create('http://mycdn.com/' . static::TEST_HEIC_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function canHandleRequestWithJsonAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_JSON_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithWebmanifestAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_WEBMANIFEST_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithTxtAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_TXT_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithMapAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_MAP_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertNull($response->headers->get('Vary'));
     }
 }
