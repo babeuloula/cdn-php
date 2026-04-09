@@ -100,5 +100,6 @@ package:
         - '!phpmd-ruleset.xml'
         - '!phpstan.neon'
         - '!phpunit.xml'
+        - '!CLAUDE.md'
         - '!README.md'
         - '!serverless.yml'
