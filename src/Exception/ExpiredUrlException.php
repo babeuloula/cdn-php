@@ -15,10 +15,10 @@ namespace BaBeuloula\CdnPhp\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class InvalidUriException extends CdnException
+class ExpiredUrlException extends CdnException
 {
-    public function __construct(string $uri)
+    public function __construct()
     {
-        parent::__construct('Invalid URI: ' . $uri, code: Response::HTTP_BAD_REQUEST);
+        parent::__construct('URL has expired.', code: Response::HTTP_GONE);
     }
 }

@@ -35,6 +35,8 @@ class StaticAssetProcessorTest extends TestCase
         $this->adapter->write(static::TEST_CSS_FILENAME, static::getTestCssContent(), new Config());
         $this->adapter->write(static::TEST_JS_FILENAME, static::getTestJsContent(), new Config());
         $this->adapter->write(static::TEST_WOFF2_FILENAME, static::getTestFontContent(), new Config());
+        $this->adapter->write('manifest.json', static::getTestJsonContent(), new Config());
+        $this->adapter->write('app.webmanifest', static::getTestWebmanifestContent(), new Config());
 
         /** @var StaticAssetProcessor $processor */
         $processor = $this->getContainer(StaticAssetProcessor::class);
@@ -75,5 +77,23 @@ class StaticAssetProcessorTest extends TestCase
         $result = $this->processor->process(static::TEST_WOFF2_FILENAME, 'woff2');
 
         static::assertSame(static::getTestFontContent(), $result);
+    }
+
+    #[Test]
+    public function canMinifyJson(): void
+    {
+        $result = $this->processor->process('manifest.json', 'json');
+
+        static::assertStringNotContainsString("\n", $result);
+        static::assertStringContainsString('"name":', $result);
+    }
+
+    #[Test]
+    public function canMinifyWebmanifest(): void
+    {
+        $result = $this->processor->process('app.webmanifest', 'webmanifest');
+
+        static::assertStringNotContainsString("\n", $result);
+        static::assertStringContainsString('"name":', $result);
     }
 }

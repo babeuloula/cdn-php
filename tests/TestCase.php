@@ -54,6 +54,8 @@ class TestCase extends BaseTestCase
     protected const string TEST_TXT_URI = 'https://example.com/robots.txt';
     protected const string TEST_MAP_URI = 'https://example.com/app.js.map';
     protected const string TEST_HEIC_URI = 'https://example.com/photo.heic';
+    protected const string TEST_WASM_URI = 'https://example.com/module.wasm';
+    protected const string TEST_CORRUPT_JSON_URI = 'https://example.com/broken.json';
 
     private Container $container;
 
@@ -119,6 +121,14 @@ class TestCase extends BaseTestCase
                         return static::getTestMapContent();
                     }
 
+                    if (static::TEST_WASM_URI === $url) {
+                        return static::getTestWasmContent();
+                    }
+
+                    if (static::TEST_CORRUPT_JSON_URI === $url) {
+                        return '{not valid json';
+                    }
+
                     throw new \RuntimeException("URL not mocked: {$url}");
                 },
             )
@@ -175,12 +185,12 @@ class TestCase extends BaseTestCase
 
     protected static function getTestJsonContent(): string
     {
-        return '{"name":"My App","version":"1.0"}';
+        return "{\n  \"name\": \"App\",\n  \"version\": \"1\"\n}";
     }
 
     protected static function getTestWebmanifestContent(): string
     {
-        return '{"name":"My App","icons":[]}';
+        return "{\n  \"name\": \"App\",\n  \"icons\": []\n}";
     }
 
     protected static function getTestTxtContent(): string
@@ -191,6 +201,11 @@ class TestCase extends BaseTestCase
     protected static function getTestMapContent(): string
     {
         return '{"version":3,"sources":["app.js"],"mappings":""}';
+    }
+
+    protected static function getTestWasmContent(): string
+    {
+        return "\x00asm\x01\x00\x00\x00";
     }
 
     protected static function getTestAnimatedGifContent(): string

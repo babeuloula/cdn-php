@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace BaBeuloula\CdnPhp\Http;
 
 use BaBeuloula\CdnPhp\Exception\FileTooLargeException;
+use BaBeuloula\CdnPhp\Exception\SsrfAttemptException;
+use BaBeuloula\CdnPhp\Security\SsrfValidator;
 
 class HttpFetcher
 {
@@ -21,15 +23,21 @@ class HttpFetcher
         private readonly int $timeout,
         private readonly int $maxBytes,
         private readonly bool $allowRedirects = false,
+        private readonly ?SsrfValidator $ssrfValidator = null,
     ) {
     }
 
     /**
      * @throws \RuntimeException
      * @throws FileTooLargeException
+     * @throws SsrfAttemptException
      */
     public function fetch(string $url): string
     {
+        if (null !== $this->ssrfValidator) {
+            $this->ssrfValidator->assertSafe($url);
+        }
+
         $followLocation = (true === $this->allowRedirects) ? 1 : 0;
         $context = stream_context_create(
             [

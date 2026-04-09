@@ -78,7 +78,40 @@ final class ImageProcessor
             ]
         );
 
-        return $server->makeImage(basename($path), $glideParams);
+        $cachePath = $server->makeImage(basename($path), $glideParams);
+        $this->stripExif($cachePath);
+
+        return $cachePath;
+    }
+
+    public function extractDominantColor(string $path): ?string
+    {
+        try {
+            $imagick = new \Imagick();
+            $imagick->readImageBlob($this->adapter->read($path));
+            $imagick->resizeImage(1, 1, \Imagick::FILTER_LANCZOS, 1);
+            $pixel = $imagick->getImagePixelColor(0, 0);
+            $color = $pixel->getColor();
+            $imagick->clear();
+
+            return sprintf('#%02x%02x%02x', $color['r'], $color['g'], $color['b']);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function stripExif(string $path): void
+    {
+        try {
+            $content = $this->adapter->read($path);
+            $imagick = new \Imagick();
+            $imagick->readImageBlob($content);
+            $imagick->stripImage();
+            $this->adapter->write($path, $imagick->getImagesBlob(), new Config());
+            $imagick->clear();
+        } catch (\Throwable) {
+            // Non-blocking: EXIF stripping failure must not prevent serving the image
+        }
     }
 
     private function processAnimated(string $path, QueryParams $params, bool $outputWebp = false): string
@@ -109,6 +142,7 @@ final class ImageProcessor
             $animation->setFormat('WEBP');
         }
 
+        $animation->stripImage();
         $blob = $animation->getImagesBlob();
         $animation->clear();
         $imagick->clear();

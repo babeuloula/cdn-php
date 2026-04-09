@@ -15,7 +15,7 @@ namespace BaBeuloula\CdnPhp\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class FileNotFoundException extends \Exception
+class FileNotFoundException extends CdnException
 {
     public function __construct(string $file, \Throwable $previous)
     {

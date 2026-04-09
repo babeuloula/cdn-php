@@ -15,7 +15,7 @@ namespace BaBeuloula\CdnPhp\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class NotSupportedExtensionException extends \InvalidArgumentException
+class NotSupportedExtensionException extends CdnException
 {
     public function __construct(string $extension)
     {

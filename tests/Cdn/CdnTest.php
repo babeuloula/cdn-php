@@ -13,10 +13,16 @@ declare(strict_types=1);
 
 namespace BaBeuloula\CdnPhp\Tests\Cdn;
 
+use BaBeuloula\CdnPhp\Cache\Cache;
 use BaBeuloula\CdnPhp\Cdn;
+use BaBeuloula\CdnPhp\Processor\ImageProcessor;
+use BaBeuloula\CdnPhp\Processor\StaticAssetProcessor;
+use BaBeuloula\CdnPhp\Security\UrlSigner;
+use BaBeuloula\CdnPhp\Storage\Storage;
 use BaBeuloula\CdnPhp\Tests\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -331,7 +337,7 @@ class CdnTest extends TestCase
     #[Test]
     public function canRecognizeHeicExtensionAsValidImageFormat(): void
     {
-        // HEIC is a valid image extension — must not be rejected with 400 (unsupported extension)
+        // HEIC is a valid image extension - must not be rejected with 400 (unsupported extension)
         $request = Request::create('http://mycdn.com/' . static::TEST_HEIC_URI);
 
         $response = $this->cdn->handleRequest($request);
@@ -381,5 +387,110 @@ class CdnTest extends TestCase
 
         static::assertSame(Response::HTTP_OK, $response->getStatusCode());
         static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithWasmAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_WASM_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertNull($response->headers->get('Vary'));
+    }
+
+    #[Test]
+    public function canHandleRequestWithDominantColorHeader(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+
+        $color = $response->headers->get('X-Dominant-Color');
+        static::assertNotNull($color);
+        static::assertMatchesRegularExpression('/^#[0-9a-f]{6}$/', (string) $color);
+    }
+
+    #[Test]
+    public function cantHandleRequestWithCorruptJsonAsset(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_CORRUPT_JSON_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function canHandleRequestWithSignedUrl(): void
+    {
+        $expires = time() + 3600;
+        $sig = hash_hmac('sha256', static::TEST_BASE_URI . ':' . $expires, static::TEST_FORCE_TOKEN);
+        $params = http_build_query(['expires' => $expires, 'sig' => $sig]);
+
+        $cdn = $this->getCdnWithSignatureSecret(static::TEST_FORCE_TOKEN);
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI . '?' . $params);
+
+        $response = $cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function cantHandleRequestWithInvalidSignature(): void
+    {
+        $expires = time() + 3600;
+        $params = http_build_query(['expires' => $expires, 'sig' => 'wrong-signature']);
+
+        $cdn = $this->getCdnWithSignatureSecret(static::TEST_FORCE_TOKEN);
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI . '?' . $params);
+
+        $response = $cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function cantHandleRequestWithExpiredSignedUrl(): void
+    {
+        $expires = time() - 1;
+        $sig = hash_hmac('sha256', static::TEST_BASE_URI . ':' . $expires, static::TEST_FORCE_TOKEN);
+        $params = http_build_query(['expires' => $expires, 'sig' => $sig]);
+
+        $cdn = $this->getCdnWithSignatureSecret(static::TEST_FORCE_TOKEN);
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI . '?' . $params);
+
+        $response = $cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_GONE, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function skipsSignatureCheckWhenSecretIsEmpty(): void
+    {
+        // Default CDN has no signature secret - any request must pass without expires/sig
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
+
+    private function getCdnWithSignatureSecret(string $secret): Cdn
+    {
+        return new Cdn(
+            $this->getContainer('allowed_domains'),
+            $this->getContainer('domains_aliases'),
+            $this->getContainer(Storage::class),
+            $this->getContainer(ImageProcessor::class),
+            $this->getContainer(StaticAssetProcessor::class),
+            $this->getContainer(Cache::class),
+            $this->getContainer(LoggerInterface::class),
+            '',
+            new UrlSigner($secret),
+        );
     }
 }

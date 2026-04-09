@@ -58,6 +58,8 @@ final class PathProcessor
             $params['mark'] = (new AsciiSlugger())->slug($this->decoder->getParams()->watermarkUrl)->toString();
         }
 
+        ksort($params);
+
         $parts = [];
         foreach ($params as $key => $value) {
             $parts[] = "{$key}{$value}";

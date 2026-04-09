@@ -55,15 +55,15 @@ class PathProcessorTest extends TestCase
     {
         yield ['w0', []];
         yield ['w100', ['w' => 100]];
-        yield ['w0/h100', ['h' => 100]];
+        yield ['h100/w0', ['h' => 100]];
         yield [
-            'w0/markexample-com-watermark-jpg/markposcenter/markw75w/markalpha50',
+            'markexample-com-watermark-jpg/markalpha50/markposcenter/markw75w/w0',
             ['wu' => static::TEST_WATERMARK_URL],
         ];
         yield ['w0', ['ws' => 50]];
         yield ['w0', ['wo' => 50]];
 
-        yield ['w100/h100', ['w' => 100, 'h' => 100]];
+        yield ['h100/w100', ['w' => 100, 'h' => 100]];
     }
 
     #[DataProvider('queryParametersProvider')]
