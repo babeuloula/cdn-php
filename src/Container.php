@@ -74,6 +74,7 @@ final class Container
                 $this->get(LoggerInterface::class),
                 $this->get(self::KEY_FORCE_TOKEN),
                 $urlSigner,
+                $this->getEnv('APP_VERSION') ?? '',
             ),
         );
     }
