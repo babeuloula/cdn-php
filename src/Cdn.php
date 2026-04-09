@@ -54,6 +54,7 @@ final class Cdn
         private readonly LoggerInterface $logger,
         private readonly string $forceToken = '',
         private readonly ?UrlSigner $urlSigner = null,
+        private readonly string $appVersion = '',
     ) {
     }
 
@@ -68,7 +69,7 @@ final class Cdn
         try {
             $this->validate($decoder);
         } catch (EmptyUriException) {
-            return new Response('Welcome to your CDN PHP (https://github.com/babeuloula/cdn-php)', Response::HTTP_OK);
+            return new Response($this->getWelcomeMessage(), Response::HTTP_OK);
         } catch (CdnException $e) {
             return new Response($e->getMessage(), $e->getCode());
         }
@@ -275,5 +276,15 @@ final class Cdn
                 throw new NotAllowedDomainException($decoder->getParams()->watermarkUrl);
             }
         }
+    }
+
+    private function getWelcomeMessage(): string
+    {
+        $welcome = 'Welcome to your CDN PHP (https://github.com/babeuloula/cdn-php)';
+        if ('' !== $this->appVersion) {
+            $welcome .= " (v{$this->appVersion})";
+        }
+
+        return $welcome;
     }
 }

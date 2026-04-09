@@ -41,6 +41,10 @@ jobs:
                     echo "bref:" >> serverless.yml
                     echo "    team: babeuloula" >> serverless.yml
 
+            -   name: Inject tag version into .env
+                if: github.ref_type == 'tag'
+                run: sed -i "s/APP_VERSION=/APP_VERSION=${{ github.ref_name }}/" .env
+
             -   run: bref deploy --env=prod
                 env:
                     BREF_TOKEN: ${{ secrets.BREF_TOKEN }}

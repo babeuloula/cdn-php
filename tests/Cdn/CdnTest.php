@@ -72,6 +72,29 @@ class CdnTest extends TestCase
     }
 
     #[Test]
+    public function canHandleRequestWithEmptyUriAndVersion(): void
+    {
+        $cdn = new Cdn(
+            $this->getContainer('allowed_domains'),
+            $this->getContainer('domains_aliases'),
+            $this->getContainer(Storage::class),
+            $this->getContainer(ImageProcessor::class),
+            $this->getContainer(StaticAssetProcessor::class),
+            $this->getContainer(Cache::class),
+            $this->getContainer(LoggerInterface::class),
+            '',
+            null,
+            '1.2.3'
+        );
+        $request = Request::create('');
+
+        $response = $cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertStringContainsString('(v1.2.3)', $response->getContent());
+    }
+
+    #[Test]
     public function cantHandleRequestInvalidUri(): void
     {
         $request = Request::create('this_is_not_a_valid_uri');
