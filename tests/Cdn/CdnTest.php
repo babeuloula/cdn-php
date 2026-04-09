@@ -208,4 +208,40 @@ class CdnTest extends TestCase
 
         static::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
     }
+
+    #[Test]
+    public function canHandleGifRequest(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_GIF_BASE_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/gif', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canHandleGifRequestWithWebpAccept(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_GIF_BASE_URI);
+        $request->headers->set('Accept', 'image/webp,*/*');
+
+        $response = $this->cdn->handleRequest($request);
+
+        // Animated GIFs are converted to animated WebP when the client supports it
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/webp', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function canHandleAnimatedWebpRequest(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_ANIMATED_WEBP_BASE_URI);
+
+        $response = $this->cdn->handleRequest($request);
+
+        // Animated WebP sources must preserve animation and stay as WebP
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/webp', $response->headers->get('Content-Type'));
+    }
 }
