@@ -13,12 +13,6 @@ declare(strict_types=1);
 
 namespace BaBeuloula\CdnPhp\Exception;
 
-use Symfony\Component\HttpFoundation\Response;
-
-class InvalidUriException extends CdnException
+abstract class CdnException extends \RuntimeException
 {
-    public function __construct(string $uri)
-    {
-        parent::__construct('Invalid URI: ' . $uri, code: Response::HTTP_BAD_REQUEST);
-    }
 }

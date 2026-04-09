@@ -126,6 +126,27 @@ class ImageProcessorTest extends TestCase
     }
 
     #[Test]
+    public function canExtractDominantColor(): void
+    {
+        /** @var ImageProcessor $imageProcessor */
+        $imageProcessor = $this->getContainer(ImageProcessor::class);
+
+        $color = $imageProcessor->extractDominantColor(static::TEST_FILENAME);
+
+        static::assertNotNull($color);
+        static::assertMatchesRegularExpression('/^#[0-9a-f]{6}$/', $color);
+    }
+
+    #[Test]
+    public function extractDominantColorReturnsNullForNonExistentFile(): void
+    {
+        /** @var ImageProcessor $imageProcessor */
+        $imageProcessor = $this->getContainer(ImageProcessor::class);
+
+        static::assertNull($imageProcessor->extractDominantColor('nonexistent.jpg'));
+    }
+
+    #[Test]
     public function canProcessAnimatedWebp(): void
     {
         /** @var FilesystemAdapter $adapter */

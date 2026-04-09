@@ -19,6 +19,8 @@ use BaBeuloula\CdnPhp\Flysystem\Adapter\UrlFilesystemAdapter;
 use BaBeuloula\CdnPhp\Http\HttpFetcher;
 use BaBeuloula\CdnPhp\Processor\ImageProcessor;
 use BaBeuloula\CdnPhp\Processor\StaticAssetProcessor;
+use BaBeuloula\CdnPhp\Security\SsrfValidator;
+use BaBeuloula\CdnPhp\Security\UrlSigner;
 use BaBeuloula\CdnPhp\Storage\Storage;
 use Bref\Logger\StderrLogger as BrefLogger;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
@@ -57,6 +59,9 @@ final class Container
 
         $this->add(self::KEY_FORCE_TOKEN, $this->getEnv('FORCE_TOKEN') ?? '');
 
+        $signatureSecret = $this->getEnv('SIGNATURE_SECRET') ?? '';
+        $urlSigner = ('' !== $signatureSecret) ? new UrlSigner($signatureSecret) : null;
+
         $this->add(
             Cdn::class,
             new Cdn(
@@ -68,6 +73,7 @@ final class Container
                 $this->get(Cache::class),
                 $this->get(LoggerInterface::class),
                 $this->get(self::KEY_FORCE_TOKEN),
+                $urlSigner,
             ),
         );
     }
@@ -141,12 +147,14 @@ final class Container
             self::KEY_FETCH_ALLOW_REDIRECTS,
             true === filter_var($this->getEnv('FETCH_ALLOW_REDIRECTS') ?? '0', FILTER_VALIDATE_BOOLEAN),
         );
+        $this->add(SsrfValidator::class, new SsrfValidator());
         $this->add(
             HttpFetcher::class,
             new HttpFetcher(
                 $this->get(self::KEY_FETCH_TIMEOUT),
                 $this->get(self::KEY_FETCH_MAX_SIZE),
                 $this->get(self::KEY_FETCH_ALLOW_REDIRECTS),
+                $this->get(SsrfValidator::class),
             ),
         );
     }

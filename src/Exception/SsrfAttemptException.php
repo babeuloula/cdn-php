@@ -15,10 +15,10 @@ namespace BaBeuloula\CdnPhp\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class InvalidUriException extends CdnException
+class SsrfAttemptException extends CdnException
 {
-    public function __construct(string $uri)
+    public function __construct(string $url)
     {
-        parent::__construct('Invalid URI: ' . $uri, code: Response::HTTP_BAD_REQUEST);
+        parent::__construct("SSRF attempt blocked: {$url}", code: Response::HTTP_FORBIDDEN);
     }
 }

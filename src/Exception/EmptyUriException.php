@@ -15,7 +15,7 @@ namespace BaBeuloula\CdnPhp\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class EmptyUriException extends \LogicException
+class EmptyUriException extends CdnException
 {
     public function __construct()
     {

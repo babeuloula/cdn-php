@@ -15,15 +15,15 @@ namespace BaBeuloula\CdnPhp;
 
 use BaBeuloula\CdnPhp\Cache\Cache;
 use BaBeuloula\CdnPhp\Decoder\UriDecoder;
+use BaBeuloula\CdnPhp\Exception\CdnException;
 use BaBeuloula\CdnPhp\Exception\EmptyUriException;
-use BaBeuloula\CdnPhp\Exception\FileNotFoundException;
-use BaBeuloula\CdnPhp\Exception\FileTooLargeException;
 use BaBeuloula\CdnPhp\Exception\InvalidUriException;
 use BaBeuloula\CdnPhp\Exception\NotAllowedDomainException;
 use BaBeuloula\CdnPhp\Exception\NotSupportedExtensionException;
 use BaBeuloula\CdnPhp\Processor\ImageProcessor;
 use BaBeuloula\CdnPhp\Processor\PathProcessor;
 use BaBeuloula\CdnPhp\Processor\StaticAssetProcessor;
+use BaBeuloula\CdnPhp\Security\UrlSigner;
 use BaBeuloula\CdnPhp\Storage\Storage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,7 +37,7 @@ final class Cdn
     /** @var string[] */
     private const array STATIC_EXTENSIONS = [
         'css', 'js', 'woff', 'woff2', 'ttf', 'eot', 'otf', 'svg', 'ico',
-        'xml', 'json', 'webmanifest', 'txt', 'map',
+        'xml', 'json', 'webmanifest', 'txt', 'map', 'wasm',
     ];
 
     /**
@@ -53,6 +53,7 @@ final class Cdn
         private readonly Cache $cache,
         private readonly LoggerInterface $logger,
         private readonly string $forceToken = '',
+        private readonly ?UrlSigner $urlSigner = null,
     ) {
     }
 
@@ -68,8 +69,13 @@ final class Cdn
             $this->validate($decoder);
         } catch (EmptyUriException) {
             return new Response('Welcome to your CDN PHP (https://github.com/babeuloula/cdn-php)', Response::HTTP_OK);
-        } catch (InvalidUriException | NotSupportedExtensionException | NotAllowedDomainException $e) {
+        } catch (CdnException $e) {
             return new Response($e->getMessage(), $e->getCode());
+        }
+
+        $signatureError = $this->validateSignature($request, $decoder);
+        if (null !== $signatureError) {
+            return $signatureError;
         }
 
         $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), PATHINFO_EXTENSION));
@@ -106,6 +112,25 @@ final class Cdn
         return $this->cache->createResponse($cachedPath, $supportAvif, $supportWebp, $request, varyAccept: $isImage);
     }
 
+    private function validateSignature(Request $request, UriDecoder $decoder): ?Response
+    {
+        if (null === $this->urlSigner) {
+            return null;
+        }
+
+        try {
+            $this->urlSigner->verify(
+                $decoder->getImageUrl(),
+                $request->query->getInt('expires'),
+                (string) $request->query->get('sig', ''),
+            );
+        } catch (CdnException $e) {
+            return new Response($e->getMessage(), $e->getCode());
+        }
+
+        return null;
+    }
+
     private function fetchAndCache(
         UriDecoder $decoder,
         string $extension,
@@ -117,7 +142,7 @@ final class Cdn
     ): ?Response {
         try {
             $originalPath = $this->storage->fetchFile($decoder->getImageUrl(), $decoder->getDomain(), $force);
-        } catch (FileTooLargeException | FileNotFoundException $e) {
+        } catch (CdnException $e) {
             return new Response($e->getMessage(), $e->getCode());
         }
 
@@ -143,6 +168,11 @@ final class Cdn
                 $supportWebp,
             );
             $this->storage->save($cachedPath, $this->storage->read($processedImage));
+
+            $dominantColor = $this->imageProcessor->extractDominantColor($originalPath);
+            if (null !== $dominantColor) {
+                $this->storage->save($cachedPath . '.color', $dominantColor);
+            }
 
             return null;
         } catch (\Throwable $e) {
@@ -213,9 +243,7 @@ final class Cdn
 
     /**
      * @throws EmptyUriException
-     * @throws InvalidUriException
-     * @throws NotAllowedDomainException
-     * @throws NotSupportedExtensionException
+     * @throws CdnException
      */
     private function validate(UriDecoder $decoder): void
     {
@@ -228,7 +256,7 @@ final class Cdn
         }
 
         if (false === \in_array($decoder->getDomain(), $this->allowedDomains, true)) {
-            throw  new NotAllowedDomainException($decoder->getDomain());
+            throw new NotAllowedDomainException($decoder->getDomain());
         }
 
         $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), PATHINFO_EXTENSION));

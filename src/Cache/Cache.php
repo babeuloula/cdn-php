@@ -50,6 +50,11 @@ final class Cache
 
         if (true === $varyAccept) {
             $response->headers->set('Vary', 'Accept');
+            try {
+                $response->headers->set('X-Dominant-Color', $this->storage->read($path . '.color'));
+            } catch (\Throwable) {
+                // No color sidecar available - omit the header
+            }
         }
         $response->setMaxAge($this->ttl);
         $response->setExpires((new \DateTimeImmutable())->modify("+$this->ttl seconds"));

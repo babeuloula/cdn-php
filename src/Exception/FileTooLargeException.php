@@ -15,7 +15,7 @@ namespace BaBeuloula\CdnPhp\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class FileTooLargeException extends \Exception
+class FileTooLargeException extends CdnException
 {
     public function __construct(string $url, int $maxBytes)
     {

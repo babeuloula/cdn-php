@@ -15,7 +15,7 @@ namespace BaBeuloula\CdnPhp\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class NotAllowedDomainException extends \InvalidArgumentException
+class NotAllowedDomainException extends CdnException
 {
     public function __construct(string $domain)
     {

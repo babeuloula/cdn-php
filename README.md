@@ -3,18 +3,26 @@
 ## Overview
 
 This project is a lightweight CDN built with PHP.
-It supports fetching, optimizing, caching and serving images dynamically while ensuring high flexibility and efficiency.
+It supports fetching, optimizing, caching, and serving images and static assets dynamically while ensuring high flexibility and efficiency.
 
 ## Features
 
-- **Domain Restriction:** Allows defining authorized domains via an environment variable (_ALLOWED_DOMAINS_).
-- **On-the-Fly Image Processing:** Fetches images from a URL, compresses them lossless, and caches them.
-- **WebP Support:** Converts images to WebP format if supported by the requesting client (GIFs are always served as GIF to preserve animation).
-- **Animated GIF Support:** Preserves all frames of animated GIFs through resize operations.
-- **Static Asset Support:** Fetches, optimizes, and serves JS/CSS/font files with proper cache headers:
-  - **CSS & JS minification:** Automatically minifies `.css` and `.js` files to reduce file size.
+- **Domain Restriction:** Allows defining authorized domains via an environment variable (`ALLOWED_DOMAINS`).
+- **On-the-Fly Image Processing:** Fetches images from a URL, compresses them, and caches them.
+- **WebP & AVIF Support:** Converts images to WebP or AVIF format based on the client's `Accept` header (AVIF takes priority).
+- **Animated GIF Support:** Preserves all frames of animated GIFs through resize operations; converts to animated WebP on demand.
+- **EXIF Stripping:** Automatically removes EXIF metadata (GPS, device model…) from processed images to protect user privacy.
+- **Dominant Color Header:** Returns an `X-Dominant-Color: #rrggbb` header on image responses for use as a placeholder while the image loads.
+- **Static Asset Support:** Fetches, optimizes, and serves static files with proper cache headers:
+  - **CSS & JS minification:** Automatically minifies `.css` and `.js` files.
+  - **JSON minification:** Minifies `.json` and `.webmanifest` files.
   - **Font passthrough:** Serves `.woff`, `.woff2`, `.ttf`, `.eot`, `.otf` with long-term caching.
   - **SVG & ICO passthrough:** Serves `.svg` and `.ico` with long-term caching.
+  - **Other passthroughs:** Serves `.xml`, `.txt`, `.map`, `.wasm` as-is with long-term caching.
+- **Signed URLs:** Optional HMAC-SHA256 URL signing with expiration (`SIGNATURE_SECRET`). When enabled, requests must carry `?expires=<timestamp>&sig=<hmac>`.
+- **SSRF Protection:** Blocks requests targeting private/reserved IP ranges (loopback, link-local, RFC 1918, etc.) in addition to domain allowlisting.
+- **Fetch Hardening:** Configurable timeout, maximum file size, and redirect policy to prevent slow-loris, image-bomb, and SSRF-via-redirect attacks.
+- **Force Re-fetch Protection:** Optional secret token required to bypass the cache (`FORCE_TOKEN`).
 - **Configurable Storage:** Supports both local filesystem and S3-compatible storage.
 - **Dynamic Image Resizing:** Resize images via query parameters:
   - `w` (width)
@@ -23,11 +31,8 @@ It supports fetching, optimizing, caching and serving images dynamically while e
   - `wp` (watermark position, default: center)
   - `ws` (watermark size percentage, default: 75%)
   - `wo` (watermark opacity percentage, default: 50%)
-- **Smart Storage Structure:** Assets are stored based on query parameters.
+- **Smart Storage Structure:** Assets are stored based on query parameters for deterministic cache keys.
 - **Serverless Compatible:** Optimized to run in a serverless environment.
-- **SSRF Protection:** Only domains listed in `ALLOWED_DOMAINS` can be fetched (applies to both source images and watermarks).
-- **Fetch Hardening:** Configurable timeout, maximum file size, and redirect policy to prevent slow-loris, image-bomb, and SSRF-via-redirect attacks.
-- **Force Re-fetch Protection:** Optional secret token required to bypass the cache (`FORCE_TOKEN`).
 
 ## Serverless
 
@@ -110,11 +115,14 @@ IMAGE_COMPRESSION=75
 # HTTP fetch (timeout in seconds, max size in bytes)
 FETCH_TIMEOUT=10
 FETCH_MAX_SIZE=52428800
-# Set to 1 only if your image origins serve via redirects (SSRF risk — see security notes)
+# Set to 1 only if your image origins serve via redirects (SSRF risk - see security notes)
 FETCH_ALLOW_REDIRECTS=0
 
 # Force re-fetch token (empty = no protection, set to a secret to require ?token=<value>)
 FORCE_TOKEN=
+
+# URL signing secret (empty = disabled; when set, all requests must carry ?expires=<ts>&sig=<hmac>)
+SIGNATURE_SECRET=
 ```
 
 ## Running with Docker
@@ -143,10 +151,12 @@ https://cdn-php.loc/https://www.mysite.com/image.png?w=200&h=200
 
 The CDN will:
 - Fetch the image from www.mysite.com
+- Strip EXIF metadata
 - Optimize and compress it
-- Convert it to WebP if supported
+- Convert it to AVIF or WebP if the client supports it
 - Store it based on parameters
 - Serve it with proper caching headers (`Cache-Control`, `ETag`, `Vary: Accept`)
+- Add `X-Dominant-Color: #rrggbb` for use as a CSS placeholder
 
 ### Static Assets
 
@@ -159,20 +169,96 @@ https://cdn-php.loc/https://www.mysite.com/style.css
 # JavaScript (automatically minified)
 https://cdn-php.loc/https://www.mysite.com/app.js
 
+# JSON / Web App Manifest (automatically minified)
+https://cdn-php.loc/https://www.mysite.com/manifest.json
+https://cdn-php.loc/https://www.mysite.com/app.webmanifest
+
 # Fonts (served as-is with long-term caching)
 https://cdn-php.loc/https://www.mysite.com/font.woff2
 
 # SVG / ICO (served as-is with long-term caching)
 https://cdn-php.loc/https://www.mysite.com/logo.svg
+
+# Other passthroughs
+https://cdn-php.loc/https://www.mysite.com/robots.txt
+https://cdn-php.loc/https://www.mysite.com/app.js.map
+https://cdn-php.loc/https://www.mysite.com/module.wasm
 ```
 
-Supported extensions: `css`, `js`, `woff`, `woff2`, `ttf`, `eot`, `otf`, `svg`, `ico`, `xml`
+Supported extensions: `css`, `js`, `woff`, `woff2`, `ttf`, `eot`, `otf`, `svg`, `ico`, `xml`, `json`, `webmanifest`, `txt`, `map`, `wasm`
 
-CSS and JS files are automatically minified (comments and unnecessary whitespace removed) before being cached, reducing their size for faster delivery.
+### Signed URLs
+
+When `SIGNATURE_SECRET` is set, every CDN request must carry a valid HMAC-SHA256 signature. This prevents anyone from constructing arbitrary CDN URLs directly – only your backend can generate valid ones.
+
+**How it works:**
+
+1. Your backend generates a signed URL and injects it into the HTML.
+2. The browser fetches the CDN URL (with the signature).
+3. The CDN verifies the signature before serving the asset.
+
+**What gets signed:**
+
+The signature covers the **source URL** (the image/asset origin, without CDN params) and the expiry timestamp:
+
+```
+HMAC-SHA256( "<source_url>:<expires>", SIGNATURE_SECRET )
+```
+
+**PHP helper (in your application backend):**
+
+```php
+function cdnUrl(
+    string $cdnBase,
+    string $sourceUrl,
+    int    $ttl = 3600,
+    array  $params = [],
+): string {
+    $expires = time() + $ttl;
+    $sig     = hash_hmac('sha256', $sourceUrl . ':' . $expires, $_ENV['SIGNATURE_SECRET']);
+
+    return $cdnBase . '/' . $sourceUrl . '?' . http_build_query(
+        array_merge($params, ['expires' => $expires, 'sig' => $sig])
+    );
+}
+```
+
+**Usage in a Twig template (for example):**
+
+```php
+// In your controller
+$imageUrl = cdnUrl(
+    cdnBase:   'https://cdn.mysite.com',
+    sourceUrl: 'https://www.mysite.com/uploads/photo.jpg',
+    ttl:       3600,           // link valid for 1 hour
+    params:    ['w' => 800, 'h' => 600],
+);
+```
+
+```html
+<!-- In your template -->
+<img src="{{ imageUrl }}" alt="Photo">
+```
+
+This produces a URL like:
+
+```
+https://cdn.mysite.com/https://www.mysite.com/uploads/photo.jpg
+    ?w=800&h=600&expires=1714000000&sig=a3f2c1...
+```
+
+**Error responses:**
+
+| Situation                          | HTTP status     |
+|------------------------------------|-----------------|
+| `sig` missing or incorrect         | `403 Forbidden` |
+| `expires` timestamp is in the past | `410 Gone`      |
+
+> **Important:** `SIGNATURE_SECRET` must be kept server-side only. Never expose it in front-end code or public repositories.
 
 ### Compression (GZIP)
 
-**With the serverless setup (Bref / API Gateway):** GZIP compression is handled automatically by API Gateway via the `minimumCompressionSize` setting in `serverless.yml`. Responses larger than 1 KB are compressed transparently based on the client's `Accept-Encoding` header — no application-level changes needed.
+**With the serverless setup (Bref / API Gateway):** API Gateway handles GZIP compression automatically via the `minimumCompressionSize` setting in `serverless.yml`. Responses larger than 1 KB are compressed transparently based on the client's `Accept-Encoding` header - no application-level changes needed.
 
 **Without serverless (Docker, Nginx, Apache…):** The CDN itself does not add `Content-Encoding: gzip` headers. You must enable compression at the web server or reverse-proxy level:
 
