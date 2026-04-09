@@ -114,7 +114,7 @@ class ImageProcessorTest extends TestCase
         /** @var ImageProcessor $imageProcessor */
         $imageProcessor = $this->getContainer(ImageProcessor::class);
 
-        $resultPath = $imageProcessor->process(static::TEST_GIF_FILENAME, QueryParams::fromArray([]), true);
+        $resultPath = $imageProcessor->process(static::TEST_GIF_FILENAME, QueryParams::fromArray([]), false, true);
 
         static::assertSame(static::TEST_GIF_WEBP_CACHE_PATH, $resultPath);
 

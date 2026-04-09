@@ -18,6 +18,7 @@ use BaBeuloula\CdnPhp\Cache\Cache;
 use BaBeuloula\CdnPhp\Flysystem\Adapter\UrlFilesystemAdapter;
 use BaBeuloula\CdnPhp\Http\HttpFetcher;
 use BaBeuloula\CdnPhp\Processor\ImageProcessor;
+use BaBeuloula\CdnPhp\Processor\StaticAssetProcessor;
 use BaBeuloula\CdnPhp\Storage\Storage;
 use Bref\Logger\StderrLogger as BrefLogger;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
@@ -51,6 +52,7 @@ final class Container
         $this->bootHttpFetcher();
         $this->bootStorage();
         $this->bootImageProcessor();
+        $this->bootStaticAssetProcessor();
         $this->bootCache();
 
         $this->add(self::KEY_FORCE_TOKEN, $this->getEnv('FORCE_TOKEN') ?? '');
@@ -62,6 +64,7 @@ final class Container
                 $this->get(self::KEY_DOMAINS_ALIASES),
                 $this->get(Storage::class),
                 $this->get(ImageProcessor::class),
+                $this->get(StaticAssetProcessor::class),
                 $this->get(Cache::class),
                 $this->get(LoggerInterface::class),
                 $this->get(self::KEY_FORCE_TOKEN),
@@ -230,6 +233,17 @@ final class Container
                 $this->get(UrlFilesystemAdapter::class),
                 $this->get(LoggerInterface::class),
                 $this->get(self::KEY_IMAGE_COMPRESSION),
+            ),
+        );
+    }
+
+    private function bootStaticAssetProcessor(): void
+    {
+        $this->add(
+            StaticAssetProcessor::class,
+            new StaticAssetProcessor(
+                $this->get(FilesystemAdapter::class),
+                $this->get(LoggerInterface::class),
             ),
         );
     }

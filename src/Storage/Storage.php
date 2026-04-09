@@ -28,12 +28,12 @@ final class Storage
     ) {
     }
 
-    public function fetchImage(string $imageUrl, string $domain, bool $force = false): string
+    public function fetchFile(string $url, string $domain, bool $force = false): string
     {
-        $this->logger->debug('Fetching image: {imageUrl}', ['imageUrl' => $imageUrl]);
+        $this->logger->debug('Fetching file: {url}', ['url' => $url]);
 
-        $extension = pathinfo($imageUrl, PATHINFO_EXTENSION);
-        $filename = md5($imageUrl) . '.' . $extension;
+        $extension = pathinfo($url, PATHINFO_EXTENSION);
+        $filename = md5($url) . '.' . $extension;
         $path = sprintf(
             '%s/original/%s',
             $domain,
@@ -41,17 +41,17 @@ final class Storage
         );
 
         if (true === $this->exists($path) && false === $force) {
-            $this->logger->debug('Original image already saved: {path}', ['path' => $path]);
+            $this->logger->debug('Original file already saved: {path}', ['path' => $path]);
 
             return $path;
         }
 
         try {
-            $content = $this->httpFetcher->fetch($imageUrl);
+            $content = $this->httpFetcher->fetch($url);
         } catch (FileTooLargeException $e) {
             throw $e;
         } catch (\RuntimeException $e) {
-            throw new FileNotFoundException($imageUrl, $e);
+            throw new FileNotFoundException($url, $e);
         }
 
         $this->save($path, $content);
@@ -87,7 +87,7 @@ final class Storage
 
     public function save(string $path, string $content): void
     {
-        $this->logger->debug('Save image on storage: {path}', ['path' => $path]);
+        $this->logger->debug('Save file on storage: {path}', ['path' => $path]);
 
         $this->filesystem->write($path, $content);
     }

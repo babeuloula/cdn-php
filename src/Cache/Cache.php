@@ -26,19 +26,31 @@ final class Cache
     ) {
     }
 
-    public function createResponse(string $path, bool $supportWebp, Request $request): Response
-    {
+    public function createResponse(
+        string $path,
+        bool $supportAvif,
+        bool $supportWebp,
+        Request $request,
+        bool $varyAccept = true,
+    ): Response {
         $lastModified = (new \DateTimeImmutable())->setTimestamp($this->storage->lastModified($path));
 
+        $contentType = $this->storage->mimeType($path);
+        if (true === $supportAvif) {
+            $contentType = 'image/avif';
+        } elseif (true === $supportWebp) {
+            $contentType = 'image/webp';
+        }
+
         $response = new StreamedResponse();
-        $response->headers->set(
-            'Content-Type',
-            (true === $supportWebp) ? 'image/webp' : $this->storage->mimeType($path),
-        );
+        $response->headers->set('Content-Type', $contentType);
         $response->headers->set('Content-Length', (string) $this->storage->fileSize($path));
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->setPublic();
-        $response->headers->set('Vary', 'Accept');
+
+        if (true === $varyAccept) {
+            $response->headers->set('Vary', 'Accept');
+        }
         $response->setMaxAge($this->ttl);
         $response->setExpires((new \DateTimeImmutable())->modify("+$this->ttl seconds"));
         $response->setLastModified($lastModified);

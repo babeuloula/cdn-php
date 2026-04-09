@@ -31,8 +31,12 @@ final class ImageProcessor
     ) {
     }
 
-    public function process(string $path, QueryParams $params, bool $outputWebp = false): string
-    {
+    public function process(
+        string $path,
+        QueryParams $params,
+        bool $outputAvif = false,
+        bool $outputWebp = false,
+    ): string {
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         if ('gif' === $extension) {
@@ -55,15 +59,26 @@ final class ImageProcessor
             ],
         );
 
+        $glideParams = [...$params->toArray(), 'q' => $this->imageCompression];
+
+        if (true === $outputAvif) {
+            $glideParams['fm'] = 'avif';
+        } elseif (true === $outputWebp) {
+            $glideParams['fm'] = 'webp';
+        } elseif (true === \in_array($extension, ['avif', 'heic'], true)) {
+            // Non-web-safe formats: always transcode to JPEG as browser-safe fallback
+            $glideParams['fm'] = 'jpg';
+        }
+
         $this->logger->info(
             'Process image: {path} with params {params}',
             [
                 'path' => $path,
-                'params' => json_encode($params->toArray(), flags: JSON_THROW_ON_ERROR),
+                'params' => json_encode($glideParams, flags: JSON_THROW_ON_ERROR),
             ]
         );
 
-        return $server->makeImage(basename($path), [...$params->toArray(), 'q' => $this->imageCompression]);
+        return $server->makeImage(basename($path), $glideParams);
     }
 
     private function processAnimated(string $path, QueryParams $params, bool $outputWebp = false): string

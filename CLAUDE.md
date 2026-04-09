@@ -36,22 +36,24 @@ make deploy-prod      # Deploy to production on AWS
 
 **Request flow:**
 1. `Cdn` validates the request (GET only, domain in `ALLOWED_DOMAINS`)
-2. `UriDecoder` parses the image source URL and query parameters into a `QueryParams` DTO
+2. `UriDecoder` parses the source URL and query parameters into a `QueryParams` DTO
 3. `PathProcessor` generates a deterministic cache path from the params
 4. If the cached file doesn't exist, `Storage` fetches the original via `UrlFilesystemAdapter` (Flysystem adapter wrapping Symfony's HTTP client)
-5. `ImageProcessor` applies transformations (Imagick): resize, compression, WebP conversion, watermark
-6. Result is saved to storage (local filesystem or S3 via Flysystem)
-7. `Cache` returns a Symfony `Response` with `Cache-Control`, `ETag`, and `Last-Modified` headers
+5. For **images**: `ImageProcessor` applies transformations (Imagick): resize, compression, WebP conversion, watermark
+6. For **static assets** (CSS/JS/fonts/SVG/ICO): `StaticAssetProcessor` minifies CSS and JS; other types are served as-is
+7. Result is saved to storage (local filesystem or S3 via Flysystem)
+8. `Cache` returns a Symfony `Response` with `Cache-Control`, `ETag`, and `Last-Modified` headers
 
 **Key classes:**
-- `src/Cdn.php` — orchestrates the full request lifecycle
-- `src/Container.php` — custom DI container; wires all services from env vars
-- `src/Storage/Storage.php` — Flysystem abstraction (local or S3)
-- `src/Processor/ImageProcessor.php` — ImageMagick transformations
-- `src/Processor/PathProcessor.php` — cache key generation
-- `src/Decoder/UriDecoder.php` — URL and query param parsing
-- `src/Cache/Cache.php` — HTTP response and cache headers
-- `src/Dto/QueryParams.php` — immutable DTO for image transformation parameters
+- `src/Cdn.php` - orchestrates the full request lifecycle; routes to image or static asset processing
+- `src/Container.php` - custom DI container; wires all services from env vars
+- `src/Storage/Storage.php` - Flysystem abstraction (local or S3)
+- `src/Processor/ImageProcessor.php` - ImageMagick transformations
+- `src/Processor/StaticAssetProcessor.php` - CSS/JS minification (matthiasmullie/minify); font/SVG/ICO passthrough
+- `src/Processor/PathProcessor.php` - cache key generation
+- `src/Decoder/UriDecoder.php` - URL and query param parsing
+- `src/Cache/Cache.php` - HTTP response and cache headers
+- `src/Dto/QueryParams.php` - immutable DTO for image transformation parameters
 
 **Exception-driven validation:** Domain/URI/extension/file errors are thrown as typed exceptions (`NotAllowedDomain`, `InvalidUri`, `FileNotFound`, etc.) and caught in `Cdn` to return appropriate HTTP responses.
 
@@ -86,4 +88,5 @@ Deployed to AWS Lambda (PHP 8.4 FPM, Bref framework) with:
 - 2048 MB memory, 28-second timeout
 - Imagick Lambda layer
 - Warm-up ping every 5 minutes via EventBridge
+- GZIP compression via API Gateway `minimumCompressionSize: 1024` (responses > 1 KB compressed automatically)
 - CI/CD via GitHub Actions (`.github/workflows/`)

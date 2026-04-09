@@ -42,6 +42,18 @@ class TestCase extends BaseTestCase
     protected const string TEST_GIF_FILENAME = 'image.gif';
     protected const string TEST_GIF_CACHE_PATH = './cache/image.gif';
     protected const string TEST_GIF_WEBP_CACHE_PATH = './cache/image.webp';
+    protected const string TEST_CSS_URI = 'https://example.com/style.css';
+    protected const string TEST_CSS_FILENAME = 'style.css';
+    protected const string TEST_JS_URI = 'https://example.com/app.js';
+    protected const string TEST_JS_FILENAME = 'app.js';
+    protected const string TEST_WOFF2_URI = 'https://example.com/font.woff2';
+    protected const string TEST_WOFF2_FILENAME = 'font.woff2';
+    protected const string TEST_XML_URI = 'https://example.com/sitemap.xml';
+    protected const string TEST_JSON_URI = 'https://example.com/manifest.json';
+    protected const string TEST_WEBMANIFEST_URI = 'https://example.com/app.webmanifest';
+    protected const string TEST_TXT_URI = 'https://example.com/robots.txt';
+    protected const string TEST_MAP_URI = 'https://example.com/app.js.map';
+    protected const string TEST_HEIC_URI = 'https://example.com/photo.heic';
 
     private Container $container;
 
@@ -73,6 +85,38 @@ class TestCase extends BaseTestCase
 
                     if (static::TEST_TOO_LARGE_URI === $url) {
                         throw new FileTooLargeException($url, 1);
+                    }
+
+                    if (static::TEST_CSS_URI === $url) {
+                        return static::getTestCssContent();
+                    }
+
+                    if (static::TEST_JS_URI === $url) {
+                        return static::getTestJsContent();
+                    }
+
+                    if (static::TEST_WOFF2_URI === $url) {
+                        return static::getTestFontContent();
+                    }
+
+                    if (static::TEST_XML_URI === $url) {
+                        return static::getTestXmlContent();
+                    }
+
+                    if (static::TEST_JSON_URI === $url) {
+                        return static::getTestJsonContent();
+                    }
+
+                    if (static::TEST_WEBMANIFEST_URI === $url) {
+                        return static::getTestWebmanifestContent();
+                    }
+
+                    if (static::TEST_TXT_URI === $url) {
+                        return static::getTestTxtContent();
+                    }
+
+                    if (static::TEST_MAP_URI === $url) {
+                        return static::getTestMapContent();
                     }
 
                     throw new \RuntimeException("URL not mocked: {$url}");
@@ -107,6 +151,46 @@ class TestCase extends BaseTestCase
     protected static function getTestImageContent(): string
     {
         return (string) file_get_contents(__DIR__ . '/fixtures/image.jpg');
+    }
+
+    protected static function getTestCssContent(): string
+    {
+        return "/* comment */ body { color: red; }\n\np { margin: 0; }";
+    }
+
+    protected static function getTestJsContent(): string
+    {
+        return "// comment\nfunction hello() { return 'world'; }";
+    }
+
+    protected static function getTestFontContent(): string
+    {
+        return 'woff2-binary-font-content';
+    }
+
+    protected static function getTestXmlContent(): string
+    {
+        return '<?xml version="1.0" encoding="UTF-8"?><urlset><url><loc>https://example.com/</loc></url></urlset>';
+    }
+
+    protected static function getTestJsonContent(): string
+    {
+        return '{"name":"My App","version":"1.0"}';
+    }
+
+    protected static function getTestWebmanifestContent(): string
+    {
+        return '{"name":"My App","icons":[]}';
+    }
+
+    protected static function getTestTxtContent(): string
+    {
+        return "User-agent: *\nDisallow:";
+    }
+
+    protected static function getTestMapContent(): string
+    {
+        return '{"version":3,"sources":["app.js"],"mappings":""}';
     }
 
     protected static function getTestAnimatedGifContent(): string

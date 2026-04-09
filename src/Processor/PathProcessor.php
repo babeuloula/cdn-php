@@ -18,6 +18,17 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 
 final class PathProcessor
 {
+    /**
+     * Formats that cannot be served directly by browsers and must be transcoded.
+     * The value is the web-safe fallback extension used as the base cache path.
+     *
+     * @var array<string, string>
+     */
+    private const array TRANSCODED_EXTENSIONS = [
+        'avif' => 'jpg',
+        'heic' => 'jpg',
+    ];
+
     private string $path;
 
     public function __construct(private readonly UriDecoder $decoder)
@@ -25,9 +36,17 @@ final class PathProcessor
         $this->generatePath();
     }
 
-    public function getPath(bool $supportWebp = false): string
+    public function getPath(bool $supportAvif = false, bool $supportWebp = false): string
     {
-        return $this->path . ((true === $supportWebp) ? '.webp' : '');
+        if (true === $supportAvif) {
+            return $this->path . '.avif';
+        }
+
+        if (true === $supportWebp) {
+            return $this->path . '.webp';
+        }
+
+        return $this->path;
     }
 
     private function generatePath(): void
@@ -45,7 +64,8 @@ final class PathProcessor
         }
         $path = implode('/', $parts);
 
-        $extension = pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION);
+        $sourceExtension = strtolower(pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION));
+        $extension = self::TRANSCODED_EXTENSIONS[$sourceExtension] ?? $sourceExtension;
         $filename = md5($this->decoder->getImageUrl()) . '.' . $extension;
 
         $this->path = sprintf(

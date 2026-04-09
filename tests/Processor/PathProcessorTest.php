@@ -47,7 +47,7 @@ class PathProcessorTest extends TestCase
 
         static::assertSame(
             static::TEST_DOMAIN . $path . '/' . static::TEST_FILENAME_MD5 . '.webp',
-            $pathProcessor->getPath(true)
+            $pathProcessor->getPath(false, true)
         );
     }
 
@@ -64,6 +64,51 @@ class PathProcessorTest extends TestCase
         yield ['w0', ['wo' => 50]];
 
         yield ['w100/h100', ['w' => 100, 'h' => 100]];
+    }
+
+    #[DataProvider('queryParametersProvider')]
+    #[Test]
+    public function canGetPathWithAvif(string $path, array $queryParams): void
+    {
+        $decoder = new UriDecoder(static::TEST_BASE_URI . '?' . http_build_query($queryParams));
+        $pathProcessor = new PathProcessor($decoder);
+
+        $path = ('' === $path) ? '' : "/$path";
+
+        static::assertSame(
+            static::TEST_DOMAIN . $path . '/' . static::TEST_FILENAME_MD5 . '.avif',
+            $pathProcessor->getPath(true, false)
+        );
+    }
+
+    #[Test]
+    public function avifTakesPriorityOverWebpInPath(): void
+    {
+        $decoder = new UriDecoder(static::TEST_BASE_URI);
+        $pathProcessor = new PathProcessor($decoder);
+
+        static::assertSame(
+            static::TEST_DOMAIN . '/w0/' . static::TEST_FILENAME_MD5 . '.avif',
+            $pathProcessor->getPath(true, true)
+        );
+    }
+
+    #[Test]
+    public function canGetPathForTranscodedExtensions(): void
+    {
+        foreach (['avif', 'heic'] as $ext) {
+            $imageUri = "https://example.com/image.{$ext}";
+            $decoder = new UriDecoder($imageUri);
+            $pathProcessor = new PathProcessor($decoder);
+
+            // AVIF and HEIC use .jpg as base extension for browser-safe fallback
+            $expectedFilename = md5($imageUri) . '.jpg';
+            static::assertSame(
+                static::TEST_DOMAIN . '/w0/' . $expectedFilename,
+                $pathProcessor->getPath(),
+                "Failed for extension: {$ext}",
+            );
+        }
     }
 
     #[Test]
