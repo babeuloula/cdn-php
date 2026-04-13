@@ -27,8 +27,9 @@ final class ImageProcessor
         private readonly FilesystemAdapter $adapter,
         private readonly UrlFilesystemAdapter $urlFilesystemAdapter,
         private readonly LoggerInterface $logger,
-        private readonly int $imageCompression,
+        private readonly int $jpegCompression,
         private readonly int $avifCompression,
+        private readonly int $webpCompression,
     ) {
     }
 
@@ -60,17 +61,18 @@ final class ImageProcessor
             ],
         );
 
-        $quality = true === $outputAvif ? $this->avifCompression : $this->imageCompression;
+        $quality = match (true) {
+            $outputAvif => $this->avifCompression,
+            $outputWebp => $this->webpCompression,
+            default     => $this->jpegCompression,
+        };
         $glideParams = [...$params->toArray(), 'q' => $quality];
 
-        if (true === $outputAvif) {
-            $glideParams['fm'] = 'avif';
-        } elseif (true === $outputWebp) {
-            $glideParams['fm'] = 'webp';
-        } elseif (true === \in_array($extension, ['avif', 'heic'], true)) {
-            // Non-web-safe formats: always transcode to JPEG as browser-safe fallback
-            $glideParams['fm'] = 'jpg';
-        }
+        $glideParams['fm'] = match (true) {
+            $outputAvif => 'avif',
+            $outputWebp => 'webp',
+            default     => 'jpg', // Always JPEG in fallback
+        };
 
         $this->logger->info(
             'Process image: {path} with params {params}',
