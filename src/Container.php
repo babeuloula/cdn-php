@@ -39,6 +39,7 @@ final class Container
     private const string KEY_STORAGE_PATH = 'storage_path';
     private const string KEY_CACHE_TTL = 'cache_ttl';
     private const string KEY_IMAGE_COMPRESSION = 'image_compression';
+    private const string KEY_AVIF_COMPRESSION = 'avif_compression';
     private const string KEY_FETCH_TIMEOUT = 'fetch_timeout';
     private const string KEY_FETCH_MAX_SIZE = 'fetch_max_size';
     private const string KEY_FETCH_ALLOW_REDIRECTS = 'fetch_allow_redirects';
@@ -235,6 +236,11 @@ final class Container
     private function bootImageProcessor(): void
     {
         $this->add(self::KEY_IMAGE_COMPRESSION, (int) $this->getEnv('IMAGE_COMPRESSION'));
+        $avifCompressionEnv = $this->getEnv('AVIF_COMPRESSION');
+        $this->add(
+            self::KEY_AVIF_COMPRESSION,
+            null !== $avifCompressionEnv ? (int) $avifCompressionEnv : $this->get(self::KEY_IMAGE_COMPRESSION),
+        );
         $this->add(
             ImageProcessor::class,
             new ImageProcessor(
@@ -242,6 +248,7 @@ final class Container
                 $this->get(UrlFilesystemAdapter::class),
                 $this->get(LoggerInterface::class),
                 $this->get(self::KEY_IMAGE_COMPRESSION),
+                $this->get(self::KEY_AVIF_COMPRESSION),
             ),
         );
     }
