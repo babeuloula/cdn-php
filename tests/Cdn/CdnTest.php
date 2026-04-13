@@ -502,6 +502,42 @@ class CdnTest extends TestCase
         static::assertSame(Response::HTTP_OK, $response->getStatusCode());
     }
 
+    #[Test]
+    public function avifDisabledIgnoresAvifAcceptHeader(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI);
+        $request->headers->set('Accept', 'image/avif,*/*');
+
+        $response = $this->getCdnWithFormats(avifEnabled: false, webpEnabled: true)->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/jpeg', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function webpDisabledIgnoresWebpAcceptHeader(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI);
+        $request->headers->set('Accept', 'image/webp,*/*');
+
+        $response = $this->getCdnWithFormats(avifEnabled: true, webpEnabled: false)->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/jpeg', $response->headers->get('Content-Type'));
+    }
+
+    #[Test]
+    public function avifDisabledFallsBackToWebpWhenBrowserSupportsBoths(): void
+    {
+        $request = Request::create('http://mycdn.com/' . static::TEST_BASE_URI);
+        $request->headers->set('Accept', 'image/avif,image/webp,*/*');
+
+        $response = $this->getCdnWithFormats(avifEnabled: false, webpEnabled: true)->handleRequest($request);
+
+        static::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        static::assertSame('image/webp', $response->headers->get('Content-Type'));
+    }
+
     private function getCdnWithSignatureSecret(string $secret): Cdn
     {
         return new Cdn(
@@ -514,6 +550,21 @@ class CdnTest extends TestCase
             $this->getContainer(LoggerInterface::class),
             '',
             new UrlSigner($secret),
+        );
+    }
+
+    private function getCdnWithFormats(bool $avifEnabled, bool $webpEnabled): Cdn
+    {
+        return new Cdn(
+            $this->getContainer('allowed_domains'),
+            $this->getContainer('domains_aliases'),
+            $this->getContainer(Storage::class),
+            $this->getContainer(ImageProcessor::class),
+            $this->getContainer(StaticAssetProcessor::class),
+            $this->getContainer(Cache::class),
+            $this->getContainer(LoggerInterface::class),
+            avifEnabled: $avifEnabled,
+            webpEnabled: $webpEnabled,
         );
     }
 }

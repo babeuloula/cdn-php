@@ -38,8 +38,11 @@ final class Container
     private const string KEY_STORAGE_DRIVER = 'storage_driver';
     private const string KEY_STORAGE_PATH = 'storage_path';
     private const string KEY_CACHE_TTL = 'cache_ttl';
-    private const string KEY_IMAGE_COMPRESSION = 'image_compression';
     private const string KEY_AVIF_COMPRESSION = 'avif_compression';
+    private const string KEY_JPEG_COMPRESSION = 'jpeg_compression';
+    private const string KEY_WEBP_COMPRESSION = 'webp_compression';
+    private const string KEY_AVIF_ENABLED = 'avif_enabled';
+    private const string KEY_WEBP_ENABLED = 'webp_enabled';
     private const string KEY_FETCH_TIMEOUT = 'fetch_timeout';
     private const string KEY_FETCH_MAX_SIZE = 'fetch_max_size';
     private const string KEY_FETCH_ALLOW_REDIRECTS = 'fetch_allow_redirects';
@@ -76,6 +79,8 @@ final class Container
                 $this->get(self::KEY_FORCE_TOKEN),
                 $urlSigner,
                 $this->getEnv('APP_VERSION') ?? '',
+                $this->get(self::KEY_AVIF_ENABLED),
+                $this->get(self::KEY_WEBP_ENABLED),
             ),
         );
     }
@@ -235,20 +240,28 @@ final class Container
 
     private function bootImageProcessor(): void
     {
-        $this->add(self::KEY_IMAGE_COMPRESSION, (int) $this->getEnv('IMAGE_COMPRESSION'));
-        $avifCompressionEnv = $this->getEnv('AVIF_COMPRESSION');
+        $this->add(self::KEY_AVIF_COMPRESSION, (int) ($this->getEnv('AVIF_COMPRESSION') ?? '85'));
+        $this->add(self::KEY_JPEG_COMPRESSION, (int) ($this->getEnv('JPEG_COMPRESSION') ?? '75'));
+        $this->add(self::KEY_WEBP_COMPRESSION, (int) ($this->getEnv('WEBP_COMPRESSION') ?? '75'));
+
         $this->add(
-            self::KEY_AVIF_COMPRESSION,
-            null !== $avifCompressionEnv ? (int) $avifCompressionEnv : $this->get(self::KEY_IMAGE_COMPRESSION),
+            self::KEY_AVIF_ENABLED,
+            filter_var($this->getEnv('AVIF_ENABLED') ?? 'true', FILTER_VALIDATE_BOOLEAN),
         );
+        $this->add(
+            self::KEY_WEBP_ENABLED,
+            filter_var($this->getEnv('WEBP_ENABLED') ?? 'true', FILTER_VALIDATE_BOOLEAN),
+        );
+
         $this->add(
             ImageProcessor::class,
             new ImageProcessor(
                 $this->get(FilesystemAdapter::class),
                 $this->get(UrlFilesystemAdapter::class),
                 $this->get(LoggerInterface::class),
-                $this->get(self::KEY_IMAGE_COMPRESSION),
+                $this->get(self::KEY_JPEG_COMPRESSION),
                 $this->get(self::KEY_AVIF_COMPRESSION),
+                $this->get(self::KEY_WEBP_COMPRESSION),
             ),
         );
     }

@@ -4,6 +4,8 @@ params:
     default:
         storage_driver: s3
         cache_ttl: 31536000
+        avif_enabled: 'true'
+        webp_enabled: 'true'
 
     prod:
         app_debug: 0
@@ -15,7 +17,10 @@ params:
         s3_region: ${ssm:/cdn-php/prod/s3-region}
         s3_access_key: ${ssm:/cdn-php/prod/s3-access-key}
         s3_secret_key: ${ssm:/cdn-php/prod/s3-secret-key}
-        image_compression: ${ssm:/cdn-php/prod/image-compression}
+        avif_enabled: ${ssm:/cdn-php/prod/avif-enabled}
+        webp_enabled: ${ssm:/cdn-php/prod/webp-enabled}
+        jpeg_compression: ${ssm:/cdn-php/prod/jpeg-compression}
+        webp_compression: ${ssm:/cdn-php/prod/webp-compression}
         avif_compression: ${ssm:/cdn-php/prod/avif-compression}
         force_token: ${ssm:/cdn-php/prod/force-token}
 
@@ -29,7 +34,10 @@ params:
         s3_region: ${ssm:/cdn-php/dev/s3-region}
         s3_access_key: ${ssm:/cdn-php/dev/s3-access-key}
         s3_secret_key: ${ssm:/cdn-php/dev/s3-secret-key}
-        image_compression: ${ssm:/cdn-php/dev/image-compression}
+        avif_enabled: ${ssm:/cdn-php/dev/avif-enabled}
+        webp_enabled: ${ssm:/cdn-php/dev/webp-enabled}
+        jpeg_compression: ${ssm:/cdn-php/dev/jpeg-compression}
+        webp_compression: ${ssm:/cdn-php/dev/webp-compression}
         avif_compression: ${ssm:/cdn-php/dev/avif-compression}
         force_token: ${ssm:/cdn-php/dev/force-token}
 
@@ -81,8 +89,11 @@ functions:
             S3_SECRET_KEY: ${param:s3_secret_key}
             LOG_STREAM: php://stderr
             LOG_LEVEL: ${param:log_level}
-            IMAGE_COMPRESSION: ${param:image_compression}
             AVIF_COMPRESSION: ${param:avif_compression}
+            AVIF_ENABLED: ${param:avif_enabled}
+            WEBP_ENABLED: ${param:webp_enabled}
+            JPEG_COMPRESSION: ${param:jpeg_compression}
+            WEBP_COMPRESSION: ${param:webp_compression}
 
 package:
     patterns:

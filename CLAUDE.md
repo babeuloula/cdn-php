@@ -70,15 +70,19 @@ Tests mirror `src/` structure under `tests/`. The base `TestCase` class provides
 
 The app is configured entirely via environment variables (see `.env`):
 
-| Variable                                                                  | Purpose                                           |
-|---------------------------------------------------------------------------|---------------------------------------------------|
-| `ALLOWED_DOMAINS`                                                         | Comma-separated list of authorized source domains |
-| `DOMAINS_ALIASES`                                                         | Domain aliases, e.g. `example.com/secret=ex`      |
-| `STORAGE_DRIVER`                                                          | `local` or `s3`                                   |
-| `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | S3 config                                         |
-| `IMAGE_COMPRESSION`                                                       | JPEG/WebP quality (0–100)                         |
-| `CACHE_TTL`                                                               | HTTP cache TTL in seconds (default: 1 year)       |
-| `LOG_LEVEL`                                                               | PSR-3 log level                                   |
+| Variable                                                                  | Purpose                                                                        |
+|---------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `ALLOWED_DOMAINS`                                                         | Comma-separated list of authorized source domains                              |
+| `DOMAINS_ALIASES`                                                         | Domain aliases, e.g. `example.com/secret=ex`                                   |
+| `STORAGE_DRIVER`                                                          | `local` or `s3`                                                                |
+| `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | S3 config                                                                      |
+| `AVIF_COMPRESSION`                                                        | AVIF quality (0–100), default 85                                               |
+| `JPEG_COMPRESSION`                                                        | JPEG quality (0–100), default 75                                               |
+| `WEBP_COMPRESSION`                                                        | WebP quality (0–100), default 75                                               |
+| `AVIF_ENABLED`                                                            | `true`/`false` — enable AVIF output when browser supports it (default: `true`) |
+| `WEBP_ENABLED`                                                            | `true`/`false` — enable WebP output when browser supports it (default: `true`) |
+| `CACHE_TTL`                                                               | HTTP cache TTL in seconds (default: 1 year)                                    |
+| `LOG_LEVEL`                                                               | PSR-3 log level                                                                |
 
 In production, secrets are pulled from AWS SSM Parameter Store (see `serverless.yml`). Local dev uses MinIO (S3-compatible) on port 9001.
 

@@ -55,6 +55,8 @@ final class Cdn
         private readonly string $forceToken = '',
         private readonly ?UrlSigner $urlSigner = null,
         private readonly string $appVersion = '',
+        private readonly bool $avifEnabled = true,
+        private readonly bool $webpEnabled = true,
     ) {
     }
 
@@ -212,13 +214,14 @@ final class Cdn
             return [false, false];
         }
 
-        $supportAvif = $this->supportsAvif($request);
+        $outputAvif = true === $this->avifEnabled ? $this->supportsAvif($request) : false;
+        $outputWebp = true === $this->webpEnabled ? $this->supportsWebp($request) : false;
 
-        if (true === $supportAvif) {
-            return [true, false];
-        }
-
-        return [false, $this->supportsWebp($request)];
+        return match (true) {
+            $outputAvif => [true, false],
+            $outputWebp => [false, true],
+            default     => [false, false],
+        };
     }
 
     private function supportsAvif(Request $request): bool

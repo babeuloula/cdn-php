@@ -38,7 +38,7 @@ class TestCase extends BaseTestCase
     protected const string TEST_FILENAME_MD5 = '18867d45576d8283d6fabb82406789c8.jpg';
     protected const string TEST_EXTENSION = 'jpg';
     protected const string TEST_ORIGINAL_PATH = 'example.com/original/' . self::TEST_FILENAME_MD5;
-    protected const string TEST_CACHE_PATH = './cache/image.jpg/4be3b730cab4c047525c594c7560cbf0';
+    protected const string TEST_CACHE_PATH = './cache/image.jpg/d2013cfdfb10b251425adf4149a28e50';
     protected const string TEST_GIF_FILENAME = 'image.gif';
     protected const string TEST_GIF_CACHE_PATH = './cache/image.gif';
     protected const string TEST_GIF_WEBP_CACHE_PATH = './cache/image.webp';
