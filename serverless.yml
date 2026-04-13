@@ -16,6 +16,7 @@ params:
         s3_access_key: ${ssm:/cdn-php/prod/s3-access-key}
         s3_secret_key: ${ssm:/cdn-php/prod/s3-secret-key}
         image_compression: ${ssm:/cdn-php/prod/image-compression}
+        avif_compression: ${ssm:/cdn-php/prod/avif-compression}
         force_token: ${ssm:/cdn-php/prod/force-token}
 
     dev:
@@ -29,6 +30,7 @@ params:
         s3_access_key: ${ssm:/cdn-php/dev/s3-access-key}
         s3_secret_key: ${ssm:/cdn-php/dev/s3-secret-key}
         image_compression: ${ssm:/cdn-php/dev/image-compression}
+        avif_compression: ${ssm:/cdn-php/dev/avif-compression}
         force_token: ${ssm:/cdn-php/dev/force-token}
 
 provider:
@@ -80,6 +82,7 @@ functions:
             LOG_STREAM: php://stderr
             LOG_LEVEL: ${param:log_level}
             IMAGE_COMPRESSION: ${param:image_compression}
+            AVIF_COMPRESSION: ${param:avif_compression}
 
 package:
     patterns:

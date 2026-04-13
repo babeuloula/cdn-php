@@ -28,6 +28,7 @@ final class ImageProcessor
         private readonly UrlFilesystemAdapter $urlFilesystemAdapter,
         private readonly LoggerInterface $logger,
         private readonly int $imageCompression,
+        private readonly int $avifCompression,
     ) {
     }
 
@@ -59,7 +60,8 @@ final class ImageProcessor
             ],
         );
 
-        $glideParams = [...$params->toArray(), 'q' => $this->imageCompression];
+        $quality = true === $outputAvif ? $this->avifCompression : $this->imageCompression;
+        $glideParams = [...$params->toArray(), 'q' => $quality];
 
         if (true === $outputAvif) {
             $glideParams['fm'] = 'avif';
