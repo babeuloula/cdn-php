@@ -31,8 +31,10 @@ final class PathProcessor
 
     private string $path;
 
-    public function __construct(private readonly UriDecoder $decoder)
-    {
+    public function __construct(
+        private readonly UriDecoder $decoder,
+        private readonly bool $isImage = true,
+    ) {
         $this->generatePath();
     }
 
@@ -51,6 +53,17 @@ final class PathProcessor
 
     private function generatePath(): void
     {
+        if (false === $this->isImage) {
+            $extension = strtolower(pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION));
+            $this->path = sprintf(
+                '%s/static/%s',
+                $this->decoder->getDomain(),
+                $this->buildFilename($this->decoder->getImageUrl(), $extension),
+            );
+
+            return;
+        }
+
         $params = $this->decoder->getParams()->toArray();
         unset($params['fit'], $params['markpad']);
 
@@ -68,13 +81,20 @@ final class PathProcessor
 
         $sourceExtension = strtolower(pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION));
         $extension = self::TRANSCODED_EXTENSIONS[$sourceExtension] ?? $sourceExtension;
-        $filename = md5($this->decoder->getImageUrl()) . '.' . $extension;
 
         $this->path = sprintf(
             '%s%s/%s',
             $this->decoder->getDomain(),
             ('' === $path) ? '' : "/$path",
-            $filename,
+            $this->buildFilename($this->decoder->getImageUrl(), $extension),
         );
+    }
+
+    private function buildFilename(string $baseUrl, string $extension): string
+    {
+        $version = $this->decoder->getParams()->version;
+        $hashInput = (true === \is_string($version)) ? "{$baseUrl}:v={$version}" : $baseUrl;
+
+        return md5($hashInput) . '.' . $extension;
     }
 }

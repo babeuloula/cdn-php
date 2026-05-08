@@ -37,7 +37,7 @@ make deploy-prod      # Deploy to production on AWS
 **Request flow:**
 1. `Cdn` validates the request (GET only, domain in `ALLOWED_DOMAINS`)
 2. `UriDecoder` parses the source URL and query parameters into a `QueryParams` DTO
-3. `PathProcessor` generates a deterministic cache path from the params
+3. `PathProcessor` generates a deterministic cache path: images → `{domain}/{params}/{hash}.{ext}`, static assets → `{domain}/static/{hash}.{ext}` (resize params ignored). The `v` param is folded into the MD5 hash for both types
 4. If the cached file doesn't exist, `Storage` fetches the original via `UrlFilesystemAdapter` (Flysystem adapter wrapping Symfony's HTTP client)
 5. For **images**: `ImageProcessor` applies transformations (Imagick): resize, compression, WebP conversion, watermark
 6. For **static assets** (CSS/JS/fonts/SVG/ICO): `StaticAssetProcessor` minifies CSS and JS; other types are served as-is
@@ -53,7 +53,7 @@ make deploy-prod      # Deploy to production on AWS
 - `src/Processor/PathProcessor.php` - cache key generation
 - `src/Decoder/UriDecoder.php` - URL and query param parsing
 - `src/Cache/Cache.php` - HTTP response and cache headers
-- `src/Dto/QueryParams.php` - immutable DTO for image transformation parameters
+- `src/Dto/QueryParams.php` - immutable DTO for request parameters: image transformations (`w`, `h`, watermark) and cache versioning (`v`)
 
 **Exception-driven validation:** Domain/URI/extension/file errors are thrown as typed exceptions (`NotAllowedDomain`, `InvalidUri`, `FileNotFound`, etc.) and caught in `Cdn` to return appropriate HTTP responses.
 
@@ -83,6 +83,18 @@ The app is configured entirely via environment variables (see `.env`):
 | `WEBP_ENABLED`                                                            | `true`/`false` — enable WebP output when browser supports it (default: `true`) |
 | `CACHE_TTL`                                                               | HTTP cache TTL in seconds (default: 1 year)                                    |
 | `LOG_LEVEL`                                                               | PSR-3 log level                                                                |
+
+**Query parameters (per request):**
+
+| Parameter | Purpose                                                                 |
+|-----------|-------------------------------------------------------------------------|
+| `w`       | Target width (images only, max 5000)                                    |
+| `h`       | Target height (images only, max 5000)                                   |
+| `wu`      | Watermark URL (images only, must be an allowed domain)                  |
+| `wp`      | Watermark position (default: `center`)                                  |
+| `ws`      | Watermark size % (default: 75)                                          |
+| `wo`      | Watermark opacity % (default: 50)                                       |
+| `v`       | Cache version — changes the MD5 hash without altering the source URL   |
 
 In production, secrets are pulled from AWS SSM Parameter Store (see `serverless.yml`). Local dev uses MinIO (S3-compatible) on port 9001.
 

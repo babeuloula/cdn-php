@@ -23,6 +23,7 @@ final class QueryParams
     public const string PARAM_WATERMARK_POSITION = 'wp';
     public const string PARAM_WATERMARK_SIZE = 'ws';
     public const string PARAM_WATERMARK_OPACITY = 'wo';
+    public const string PARAM_VERSION = 'v';
     public const int MAX_DIMENSION = 5000;
 
     public readonly ?string $watermarkUrl;
@@ -36,6 +37,7 @@ final class QueryParams
         public readonly WatermarkPosition $watermarkPosition,
         int $watermarkSize,
         int $watermarkOpacity,
+        public readonly ?string $version = null,
     ) {
         $this->watermarkUrl = (true === str_contains((string) $watermarkUrl, '://'))
             ? (explode('://', (string) $watermarkUrl)[1] ?? null)
@@ -73,6 +75,7 @@ final class QueryParams
             empty($query[self::PARAM_WATERMARK_POSITION]) ? WatermarkPosition::default() : (WatermarkPosition::tryFrom($query[self::PARAM_WATERMARK_POSITION]) ?? WatermarkPosition::default()),
             empty($query[self::PARAM_WATERMARK_SIZE]) ? 75 : ((int) $query[self::PARAM_WATERMARK_SIZE]),
             empty($query[self::PARAM_WATERMARK_OPACITY]) ? 50 : ((int) $query[self::PARAM_WATERMARK_OPACITY]),
+            empty($query[self::PARAM_VERSION]) ? null : ((string) $query[self::PARAM_VERSION]),
         );
         // phpcs:enable
     }

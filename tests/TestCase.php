@@ -56,6 +56,9 @@ class TestCase extends BaseTestCase
     protected const string TEST_HEIC_URI = 'https://example.com/photo.heic';
     protected const string TEST_WASM_URI = 'https://example.com/module.wasm';
     protected const string TEST_CORRUPT_JSON_URI = 'https://example.com/broken.json';
+    protected const string TEST_CSS_FILENAME_MD5 = '8d1c8eb971036ec7056d3c6bb3208a15.css';
+    protected const string TEST_JS_FILENAME_MD5 = 'd3d3f07723bf47b40e1caf2816efb7d0.js';
+    protected const string TEST_WOFF2_FILENAME_MD5 = 'f96b2d01fa97b989c8c92aa04536b523.woff2';
 
     private Container $container;
 

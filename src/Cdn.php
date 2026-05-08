@@ -84,7 +84,7 @@ final class Cdn
         $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), PATHINFO_EXTENSION));
         $isImage = \in_array($extension, self::IMAGE_EXTENSIONS, true);
 
-        $pathProcessor = new PathProcessor($decoder);
+        $pathProcessor = new PathProcessor($decoder, $isImage);
 
         [$supportAvif, $supportWebp] = $this->detectOutputFormat($request, $isImage);
 
