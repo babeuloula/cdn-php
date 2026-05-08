@@ -31,7 +31,8 @@ It supports fetching, optimizing, caching, and serving images and static assets 
   - `wp` (watermark position, default: center)
   - `ws` (watermark size percentage, default: 75%)
   - `wo` (watermark opacity percentage, default: 50%)
-- **Smart Storage Structure:** Assets are stored based on query parameters for deterministic cache keys.
+- **Cache Versioning:** Add `?v=<value>` to any URL (image or static asset) to generate a new cache key without changing the source URL. The version is folded into the MD5 hash — no extra folder is created.
+- **Smart Storage Structure:** Images are stored under `{domain}/{params}/{hash}.{ext}`; static assets under `{domain}/static/{hash}.{ext}`. Resize parameters are ignored for static assets.
 - **Serverless Compatible:** Optimized to run in a serverless environment.
 
 ## Serverless
@@ -155,6 +156,12 @@ You can fetch an optimized image by calling:
 https://cdn-php.loc/https://www.mysite.com/image.png?w=200&h=200
 ```
 
+Add `?v=<value>` to bust the cache without changing the source URL:
+
+```
+https://cdn-php.loc/https://www.mysite.com/image.png?w=200&h=200&v=2
+```
+
 The CDN will:
 - Fetch the image from www.mysite.com
 - Strip EXIF metadata
@@ -171,6 +178,9 @@ You can also use the CDN to serve and optimize your static assets:
 ```
 # CSS (automatically minified)
 https://cdn-php.loc/https://www.mysite.com/style.css
+
+# With cache versioning
+https://cdn-php.loc/https://www.mysite.com/style.css?v=2
 
 # JavaScript (automatically minified)
 https://cdn-php.loc/https://www.mysite.com/app.js
