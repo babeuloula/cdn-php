@@ -31,8 +31,10 @@ final class PathProcessor
 
     private string $path;
 
-    public function __construct(private readonly UriDecoder $decoder)
-    {
+    public function __construct(
+        private readonly UriDecoder $decoder,
+        private readonly bool $isImage = true,
+    ) {
         $this->generatePath();
     }
 
@@ -51,6 +53,14 @@ final class PathProcessor
 
     private function generatePath(): void
     {
+        if (false === $this->isImage) {
+            $extension = strtolower(pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION));
+            $filename = md5($this->decoder->getImageUrl()) . '.' . $extension;
+            $this->path = sprintf('%s/static/%s', $this->decoder->getDomain(), $filename);
+
+            return;
+        }
+
         $params = $this->decoder->getParams()->toArray();
         unset($params['fit'], $params['markpad']);
 

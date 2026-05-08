@@ -127,4 +127,48 @@ class PathProcessorTest extends TestCase
             );
         }
     }
+
+    #[Test]
+    public function staticAssetPathIsUnderDomainStaticFolder(): void
+    {
+        $decoder = new UriDecoder(static::TEST_CSS_URI);
+        $pathProcessor = new PathProcessor($decoder, false);
+
+        static::assertSame(
+            static::TEST_DOMAIN . '/static/' . static::TEST_CSS_FILENAME_MD5,
+            $pathProcessor->getPath(),
+        );
+    }
+
+    #[Test]
+    public function staticAssetPathIgnoresResizeQueryParams(): void
+    {
+        $decoder = new UriDecoder(static::TEST_CSS_URI . '?w=300&h=200');
+        $pathProcessor = new PathProcessor($decoder, false);
+
+        static::assertSame(
+            static::TEST_DOMAIN . '/static/' . static::TEST_CSS_FILENAME_MD5,
+            $pathProcessor->getPath(),
+        );
+    }
+
+    #[DataProvider('staticExtensionsProvider')]
+    #[Test]
+    public function staticAssetPathPreservesExtension(string $uri, string $expectedFilename): void
+    {
+        $decoder = new UriDecoder($uri);
+        $pathProcessor = new PathProcessor($decoder, false);
+
+        static::assertSame(
+            static::TEST_DOMAIN . '/static/' . $expectedFilename,
+            $pathProcessor->getPath(),
+        );
+    }
+
+    public static function staticExtensionsProvider(): \Generator
+    {
+        yield [static::TEST_CSS_URI, static::TEST_CSS_FILENAME_MD5];
+        yield [static::TEST_JS_URI, static::TEST_JS_FILENAME_MD5];
+        yield [static::TEST_WOFF2_URI, static::TEST_WOFF2_FILENAME_MD5];
+    }
 }
