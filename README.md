@@ -59,6 +59,12 @@ make build
 
 The build is available in: `build/latest.zip`.
 
+## Caching Layer
+
+To avoid invoking the Lambda on every request, you can add an external caching layer (e.g. Cloudflare) in front of your CDN.
+
+See [CACHING.md](CACHING.md) for setup instructions.
+
 ## Installation
 
 ### 1. Clone the repository
