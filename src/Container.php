@@ -47,6 +47,7 @@ final class Container
     private const string KEY_FETCH_MAX_SIZE = 'fetch_max_size';
     private const string KEY_FETCH_ALLOW_REDIRECTS = 'fetch_allow_redirects';
     private const string KEY_FORCE_TOKEN = 'force_token';
+    private const string KEY_CORS_ALLOW_ORIGIN = 'cors_allow_origin';
 
     /** @var array<string, mixed> */
     private array $container = [];
@@ -229,11 +230,13 @@ final class Container
     private function bootCache(): void
     {
         $this->add(self::KEY_CACHE_TTL, (int) $this->getEnv('CACHE_TTL'));
+        $this->add(self::KEY_CORS_ALLOW_ORIGIN, $this->getEnv('CORS_ALLOW_ORIGIN') ?? '*');
         $this->add(
             Cache::class,
             new Cache(
                 $this->get(Storage::class),
                 $this->get(self::KEY_CACHE_TTL),
+                $this->get(self::KEY_CORS_ALLOW_ORIGIN),
             ),
         );
     }
