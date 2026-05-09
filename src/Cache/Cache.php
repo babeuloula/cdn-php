@@ -23,6 +23,7 @@ final class Cache
     public function __construct(
         private readonly Storage $storage,
         private readonly int $ttl,
+        private readonly ?string $corsAllowOrigin = '*',
     ) {
     }
 
@@ -47,6 +48,10 @@ final class Cache
         $response->headers->set('Content-Length', (string) $this->storage->fileSize($path));
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->setPublic();
+
+        if (true === \is_string($this->corsAllowOrigin)) {
+            $response->headers->set('Access-Control-Allow-Origin', $this->corsAllowOrigin);
+        }
 
         if (true === $varyAccept) {
             $response->headers->set('Vary', 'Accept');

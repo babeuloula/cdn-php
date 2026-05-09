@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace BaBeuloula\CdnPhp\Tests\Cache;
 
 use BaBeuloula\CdnPhp\Cache\Cache;
+use BaBeuloula\CdnPhp\Storage\Storage;
 use BaBeuloula\CdnPhp\Tests\TestCase;
 use League\Flysystem\Config;
 use League\Flysystem\FilesystemAdapter;
@@ -55,6 +56,31 @@ class CacheTest extends TestCase
         static::assertNotNull($response->headers->get('Last-Modified'));
         static::assertSame('Accept', $response->headers->get('Vary'));
         static::assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
+        static::assertSame('*', $response->headers->get('Access-Control-Allow-Origin'));
+    }
+
+    #[Test]
+    public function corsHeaderAbsentWhenCorsAllowOriginIsNull(): void
+    {
+        /** @var Storage $storage */
+        $storage = $this->getContainer(Storage::class);
+        $cache = new Cache($storage, 3600, null);
+
+        $response = $cache->createResponse(static::TEST_FILENAME, false, false, new Request());
+
+        static::assertNull($response->headers->get('Access-Control-Allow-Origin'));
+    }
+
+    #[Test]
+    public function corsHeaderSetToCustomOrigin(): void
+    {
+        /** @var Storage $storage */
+        $storage = $this->getContainer(Storage::class);
+        $cache = new Cache($storage, 3600, 'https://example.com');
+
+        $response = $cache->createResponse(static::TEST_FILENAME, false, false, new Request());
+
+        static::assertSame('https://example.com', $response->headers->get('Access-Control-Allow-Origin'));
     }
 
     #[Test]
