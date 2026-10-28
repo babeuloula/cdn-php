@@ -104,6 +104,10 @@ test-phpunit:
 test-security:
 	docker/exec composer audit
 
+# HTTP smoke test against a running CDN (see bin/smoke-test.sh for the variables)
+smoke-test:
+	bin/smoke-test.sh
+
 ##
 ## Build & deploy
 ##---------------------------------------------------------------------------

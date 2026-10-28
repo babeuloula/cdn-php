@@ -102,6 +102,7 @@ package:
         - '!.cache/**'
         - '!.idea/**'
         - '!.github/**'
+        - '!bin/**'
         - '!build/**'
         - '!docker/**'
         - '!tests/**'
