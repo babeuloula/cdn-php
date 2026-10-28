@@ -40,7 +40,7 @@ jobs:
                     version: 2
                     args: --optimize-autoloader --no-scripts --ignore-platform-reqs
 
-    phpcs:
+    cs:
         runs-on: ubuntu-latest
 
         needs: [composer]
@@ -49,6 +49,11 @@ jobs:
             -   name: Checkout
                 uses: actions/checkout@v4
 
+            -   name: Install PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.5'
+
             -   name: Cache composer dependencies
                 uses: actions/cache@v4
                 with:
@@ -56,8 +61,8 @@ jobs:
                     restore-keys: composer-
                     path: vendor
 
-            -   name: PHP Code Sniffer
-                run: make test-phpcs
+            -   name: PHP-CS-Fixer
+                run: make test-cs
 
     phpstan:
         runs-on: ubuntu-latest

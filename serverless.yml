@@ -112,7 +112,7 @@ package:
         - '!composer.lock'
         - '!LICENSE'
         - '!Makefile'
-        - '!phpcs.xml'
+        - '!.php-cs-fixer.php'
         - '!phpmd.yml'
         - '!phpstan.neon'
         - '!phpunit.xml'

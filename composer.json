@@ -22,7 +22,7 @@
         "symfony/translation-contracts": "^3.7"
     },
     "require-dev": {
-        "babeuloula/phpcs": "^1.5",
+        "friendsofphp/php-cs-fixer": "^3.95",
         "league/flysystem-memory": "^3.31",
         "phpmd/phpmd": "^3.0",
         "phpstan/phpstan": "^2.3",
@@ -50,7 +50,6 @@
     ],
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true,
             "symfony/runtime": true
         },
         "sort-packages": true,

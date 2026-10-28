@@ -15,9 +15,9 @@ make install          # First-time setup
 make start            # Start Docker containers
 make stop             # Stop containers
 
-make test             # Run all checks (phpcs, phpstan, phpmd, phpunit, security audit)
-make test-phpcs       # Code style (PSR-12)
-make fix-phpcs        # Auto-fix style violations
+make test             # Run all checks (php-cs-fixer, phpstan, phpmd, phpunit, security audit)
+make test-cs          # Code style (PHP-CS-Fixer, @Symfony rules)
+make fix-cs           # Auto-fix style violations
 make test-phpstan     # Static analysis
 make test-phpunit     # PHPUnit with coverage (95% threshold enforced)
 

@@ -106,12 +106,10 @@ final class Container
 
     private function getEnv(string $key, ?string $default = null): ?string
     {
-        // phpcs:ignore
         if (false === \array_key_exists($key, $_ENV)) {
             return $default;
         }
 
-        // phpcs:ignore
         return (string) $_ENV[$key];
     }
 

@@ -39,7 +39,7 @@ logs:
 hooks:
 	# Pre commit
 	echo "#!/bin/bash" > .git/hooks/pre-commit
-	echo "DISABLE_TTY=1 make test-phpcs" >> .git/hooks/pre-commit
+	echo "DISABLE_TTY=1 make test-cs" >> .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 	# Git pull
 	echo "#!/bin/bash" > .git/hooks/post-merge
@@ -73,16 +73,15 @@ buckets:
 ##---------------------------------------------------------------------------
 
 # Execute tests suite
-test: test-phpcs test-phpstan test-phpmd test-phpunit test-security
+test: test-cs test-phpstan test-phpmd test-phpunit test-security
 
-# Execute PHPCS
-test-phpcs:
-	mkdir -p ./.cache/phpcs
-	docker/exec vendor/bin/phpcs -p --report-full --report-checkstyle=./.cache/phpcs/phpcs-report.xml
+# Execute PHP-CS-Fixer (dry run)
+test-cs:
+	docker/exec vendor/bin/php-cs-fixer check --diff
 
-# Execute PHPCS fixer
-fix-phpcs:
-	docker/exec vendor/bin/phpcbf -p
+# Execute PHP-CS-Fixer
+fix-cs:
+	docker/exec vendor/bin/php-cs-fixer fix
 
 # Execute PHPStan
 test-phpstan:

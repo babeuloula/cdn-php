@@ -42,7 +42,6 @@ return static function (Request $request) use ($cdn, $logger): Response {
             ]
         );
 
-        // phpcs:ignore
         if (true === filter_var($_ENV['APP_DEBUG'] ?? '0', FILTER_VALIDATE_BOOLEAN)) {
             Debug::enable();
             return ErrorHandler::call(static fn () => throw $exception);

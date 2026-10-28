@@ -299,11 +299,11 @@ https://cdn-php.loc/https://www.mysite.com/image.png?force=true&token=<your-toke
 ## Running Tests
 
 ```bash
-# Execute PHPCS fixer
-make fix-phpcs
+# Execute PHP-CS-Fixer
+make fix-cs
 
-# Execute PHPCS
-make test-phpcs
+# Check code style with PHP-CS-Fixer
+make test-cs
 
 # Execute PHPStan
 make test-phpstan
