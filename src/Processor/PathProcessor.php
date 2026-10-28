@@ -54,8 +54,8 @@ final class PathProcessor
     private function generatePath(): void
     {
         if (false === $this->isImage) {
-            $extension = strtolower(pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION));
-            $this->path = sprintf(
+            $extension = strtolower(pathinfo($this->decoder->getImageUrl(), \PATHINFO_EXTENSION));
+            $this->path = \sprintf(
                 '%s/static/%s',
                 $this->decoder->getDomain(),
                 $this->buildFilename($this->decoder->getImageUrl(), $extension),
@@ -68,7 +68,7 @@ final class PathProcessor
         unset($params['fit'], $params['markpad']);
 
         if (true === \is_string($this->decoder->getParams()->watermarkUrl)) {
-            $params['mark'] = (new AsciiSlugger())->slug($this->decoder->getParams()->watermarkUrl)->toString();
+            $params['mark'] = new AsciiSlugger()->slug($this->decoder->getParams()->watermarkUrl)->toString();
         }
 
         ksort($params);
@@ -79,10 +79,10 @@ final class PathProcessor
         }
         $path = implode('/', $parts);
 
-        $sourceExtension = strtolower(pathinfo($this->decoder->getImageUrl(), PATHINFO_EXTENSION));
+        $sourceExtension = strtolower(pathinfo($this->decoder->getImageUrl(), \PATHINFO_EXTENSION));
         $extension = self::TRANSCODED_EXTENSIONS[$sourceExtension] ?? $sourceExtension;
 
-        $this->path = sprintf(
+        $this->path = \sprintf(
             '%s%s/%s',
             $this->decoder->getDomain(),
             ('' === $path) ? '' : "/$path",

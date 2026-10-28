@@ -30,15 +30,6 @@ class SsrfValidatorTest extends TestCase
         $this->validator = new SsrfValidator();
     }
 
-    #[DataProvider('privateIpProvider')]
-    #[Test]
-    public function blocksPrivateIp(string $ip): void
-    {
-        static::expectException(SsrfAttemptException::class);
-
-        $this->validator->assertSafe("http://{$ip}/file.jpg");
-    }
-
     public static function privateIpProvider(): \Generator
     {
         yield 'loopback' => ['127.0.0.1'];
@@ -48,6 +39,15 @@ class SsrfValidatorTest extends TestCase
         yield 'private-172' => ['172.16.0.1'];
         yield 'private-192' => ['192.168.1.1'];
         yield 'unspecified' => ['0.0.0.0'];
+    }
+
+    #[DataProvider('privateIpProvider')]
+    #[Test]
+    public function blocksPrivateIp(string $ip): void
+    {
+        static::expectException(SsrfAttemptException::class);
+
+        $this->validator->assertSafe("http://{$ip}/file.jpg");
     }
 
     #[Test]

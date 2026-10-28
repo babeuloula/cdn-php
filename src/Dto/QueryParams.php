@@ -41,8 +41,7 @@ final class QueryParams
     ) {
         $this->watermarkUrl = (true === str_contains((string) $watermarkUrl, '://'))
             ? (explode('://', (string) $watermarkUrl)[1] ?? null)
-            : $watermarkUrl
-        ;
+            : $watermarkUrl;
 
         if ($watermarkSize < 0) {
             $watermarkSize = 0;
@@ -65,7 +64,7 @@ final class QueryParams
     }
 
     /** @param array<string, int|string> $query */
-    public static function fromArray(array $query): QueryParams
+    public static function fromArray(array $query): self
     {
         return new self(
             empty($query[self::PARAM_WIDTH]) ? 0 : min((int) $query[self::PARAM_WIDTH], self::MAX_DIMENSION),

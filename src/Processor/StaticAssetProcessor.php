@@ -56,8 +56,8 @@ final class StaticAssetProcessor
      */
     private function minifyJs(string $content, string $path): string
     {
-        $prevBacktrackLimit = (int) ini_get('pcre.backtrack_limit');
-        $prevRecursionLimit = (int) ini_get('pcre.recursion_limit');
+        $prevBacktrackLimit = (int) \ini_get('pcre.backtrack_limit');
+        $prevRecursionLimit = (int) \ini_get('pcre.recursion_limit');
         ini_set('pcre.backtrack_limit', '100000');
         ini_set('pcre.recursion_limit', '500');
 

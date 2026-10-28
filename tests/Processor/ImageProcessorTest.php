@@ -18,7 +18,6 @@ use BaBeuloula\CdnPhp\Processor\ImageProcessor;
 use BaBeuloula\CdnPhp\Tests\TestCase;
 use League\Flysystem\Config;
 use League\Flysystem\FilesystemAdapter;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
 class ImageProcessorTest extends TestCase

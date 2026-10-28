@@ -36,7 +36,6 @@ class StorageTest extends TestCase
         $this->storage = $storage;
     }
 
-
     #[Test]
     public function canFetchAnImage(): void
     {

@@ -21,6 +21,28 @@ use PHPUnit\Framework\Attributes\Test;
 
 class PathProcessorTest extends TestCase
 {
+    public static function queryParametersProvider(): \Generator
+    {
+        yield ['w0', []];
+        yield ['w100', ['w' => 100]];
+        yield ['h100/w0', ['h' => 100]];
+        yield [
+            'markexample-com-watermark-jpg/markalpha50/markposcenter/markw75w/w0',
+            ['wu' => static::TEST_WATERMARK_URL],
+        ];
+        yield ['w0', ['ws' => 50]];
+        yield ['w0', ['wo' => 50]];
+
+        yield ['h100/w100', ['w' => 100, 'h' => 100]];
+    }
+
+    public static function staticExtensionsProvider(): \Generator
+    {
+        yield [static::TEST_CSS_URI, static::TEST_CSS_FILENAME_MD5];
+        yield [static::TEST_JS_URI, static::TEST_JS_FILENAME_MD5];
+        yield [static::TEST_WOFF2_URI, static::TEST_WOFF2_FILENAME_MD5];
+    }
+
     #[DataProvider('queryParametersProvider')]
     #[Test]
     public function canGetPathWithoutWebp(string $path, array $queryParams): void
@@ -49,21 +71,6 @@ class PathProcessorTest extends TestCase
             static::TEST_DOMAIN . $path . '/' . static::TEST_FILENAME_MD5 . '.webp',
             $pathProcessor->getPath(false, true)
         );
-    }
-
-    public static function queryParametersProvider(): \Generator
-    {
-        yield ['w0', []];
-        yield ['w100', ['w' => 100]];
-        yield ['h100/w0', ['h' => 100]];
-        yield [
-            'markexample-com-watermark-jpg/markalpha50/markposcenter/markw75w/w0',
-            ['wu' => static::TEST_WATERMARK_URL],
-        ];
-        yield ['w0', ['ws' => 50]];
-        yield ['w0', ['wo' => 50]];
-
-        yield ['h100/w100', ['w' => 100, 'h' => 100]];
     }
 
     #[DataProvider('queryParametersProvider')]
@@ -165,21 +172,14 @@ class PathProcessorTest extends TestCase
         );
     }
 
-    public static function staticExtensionsProvider(): \Generator
-    {
-        yield [static::TEST_CSS_URI, static::TEST_CSS_FILENAME_MD5];
-        yield [static::TEST_JS_URI, static::TEST_JS_FILENAME_MD5];
-        yield [static::TEST_WOFF2_URI, static::TEST_WOFF2_FILENAME_MD5];
-    }
-
     #[Test]
     public function imagePathWithVersionProducesDifferentHash(): void
     {
         $decoderWithVersion = new UriDecoder(static::TEST_BASE_URI . '?v=2');
-        $pathWithVersion = (new PathProcessor($decoderWithVersion))->getPath();
+        $pathWithVersion = new PathProcessor($decoderWithVersion)->getPath();
 
         $decoderWithout = new UriDecoder(static::TEST_BASE_URI);
-        $pathWithout = (new PathProcessor($decoderWithout))->getPath();
+        $pathWithout = new PathProcessor($decoderWithout)->getPath();
 
         static::assertNotSame($pathWithVersion, $pathWithout);
         static::assertStringStartsWith(static::TEST_DOMAIN . '/w0/', $pathWithVersion);
@@ -190,10 +190,10 @@ class PathProcessorTest extends TestCase
     public function staticAssetWithVersionProducesDifferentHash(): void
     {
         $decoderWithVersion = new UriDecoder(static::TEST_CSS_URI . '?v=2');
-        $pathWithVersion = (new PathProcessor($decoderWithVersion, false))->getPath();
+        $pathWithVersion = new PathProcessor($decoderWithVersion, false)->getPath();
 
         $decoderWithout = new UriDecoder(static::TEST_CSS_URI);
-        $pathWithout = (new PathProcessor($decoderWithout, false))->getPath();
+        $pathWithout = new PathProcessor($decoderWithout, false)->getPath();
 
         static::assertNotSame($pathWithVersion, $pathWithout);
         static::assertSame(
@@ -206,7 +206,7 @@ class PathProcessorTest extends TestCase
     public function staticAssetWithVersionIgnoresResizeParams(): void
     {
         $decoderWithBoth = new UriDecoder(static::TEST_CSS_URI . '?w=300&v=2');
-        $path = (new PathProcessor($decoderWithBoth, false))->getPath();
+        $path = new PathProcessor($decoderWithBoth, false)->getPath();
 
         static::assertSame(
             static::TEST_DOMAIN . '/static/f9f2413e520d0357110782f27b274a73.css',

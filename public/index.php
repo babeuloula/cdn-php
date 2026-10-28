@@ -9,7 +9,9 @@
  * file that was distributed with this source code.
  */
 
-require_once \dirname(__DIR__) . '/vendor/autoload_runtime.php';
+declare(strict_types=1);
+
+require_once dirname(__DIR__) . '/vendor/autoload_runtime.php';
 
 use BaBeuloula\CdnPhp\Cdn;
 use BaBeuloula\CdnPhp\Container;
@@ -33,7 +35,7 @@ $logger = $container->get(LoggerInterface::class);
 return static function (Request $request) use ($cdn, $logger): Response {
     try {
         return $cdn->handleRequest($request);
-    } catch (\Throwable $exception) {
+    } catch (Throwable $exception) {
         $logger->error(
             'An error occurred: {message}',
             [
@@ -42,8 +44,9 @@ return static function (Request $request) use ($cdn, $logger): Response {
             ]
         );
 
-        if (true === filter_var($_ENV['APP_DEBUG'] ?? '0', FILTER_VALIDATE_BOOLEAN)) {
+        if (true === filter_var($_ENV['APP_DEBUG'] ?? '0', \FILTER_VALIDATE_BOOLEAN)) {
             Debug::enable();
+
             return ErrorHandler::call(static fn () => throw $exception);
         }
 

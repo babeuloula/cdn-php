@@ -66,7 +66,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $httpFetcherMock = $this->createStub(HttpFetcher::class);
+        $httpFetcherMock = static::createStub(HttpFetcher::class);
 
         $httpFetcherMock
             ->method('fetch')
@@ -134,31 +134,12 @@ class TestCase extends BaseTestCase
 
                     throw new \RuntimeException("URL not mocked: {$url}");
                 },
-            )
-        ;
+            );
 
         $this->container = new Container();
         $this->container->add(HttpFetcher::class, $httpFetcherMock);
         $this->container->add(FilesystemAdapter::class, new InMemoryFilesystemAdapter());
         $this->container->boot();
-    }
-
-    protected function getContainer(string $id): mixed
-    {
-        return $this->container->get($id);
-    }
-
-    protected function getQueryParameters(): string
-    {
-        return '?' . http_build_query(
-            [
-                'w' => 300,
-                'h' => 200,
-                'wu' => static::TEST_WATERMARK_URL,
-                'ws' => 100,
-                'wo' => 100,
-            ],
-        );
     }
 
     protected static function getTestImageContent(): string
@@ -247,5 +228,23 @@ class TestCase extends BaseTestCase
         $animation->clear();
 
         return $content;
+    }
+
+    protected function getContainer(string $id): mixed
+    {
+        return $this->container->get($id);
+    }
+
+    protected function getQueryParameters(): string
+    {
+        return '?' . http_build_query(
+            [
+                'w' => 300,
+                'h' => 200,
+                'wu' => static::TEST_WATERMARK_URL,
+                'ws' => 100,
+                'wo' => 100,
+            ],
+        );
     }
 }

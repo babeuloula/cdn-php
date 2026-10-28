@@ -151,7 +151,7 @@ final class Container
         $this->add(self::KEY_FETCH_MAX_SIZE, (int) ($this->getEnv('FETCH_MAX_SIZE') ?? '52428800'));
         $this->add(
             self::KEY_FETCH_ALLOW_REDIRECTS,
-            true === filter_var($this->getEnv('FETCH_ALLOW_REDIRECTS') ?? '0', FILTER_VALIDATE_BOOLEAN),
+            true === filter_var($this->getEnv('FETCH_ALLOW_REDIRECTS') ?? '0', \FILTER_VALIDATE_BOOLEAN),
         );
         $this->add(SsrfValidator::class, new SsrfValidator());
         $this->add(
@@ -247,11 +247,11 @@ final class Container
 
         $this->add(
             self::KEY_AVIF_ENABLED,
-            filter_var($this->getEnv('AVIF_ENABLED') ?? 'true', FILTER_VALIDATE_BOOLEAN),
+            filter_var($this->getEnv('AVIF_ENABLED') ?? 'true', \FILTER_VALIDATE_BOOLEAN),
         );
         $this->add(
             self::KEY_WEBP_ENABLED,
-            filter_var($this->getEnv('WEBP_ENABLED') ?? 'true', FILTER_VALIDATE_BOOLEAN),
+            filter_var($this->getEnv('WEBP_ENABLED') ?? 'true', \FILTER_VALIDATE_BOOLEAN),
         );
 
         $this->add(
