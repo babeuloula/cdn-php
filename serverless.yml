@@ -113,7 +113,7 @@ package:
         - '!LICENSE'
         - '!Makefile'
         - '!phpcs.xml'
-        - '!phpmd-ruleset.xml'
+        - '!phpmd.yml'
         - '!phpstan.neon'
         - '!phpunit.xml'
         - '!CLAUDE.md'

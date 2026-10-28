@@ -90,7 +90,7 @@ test-phpstan:
 
 # Execute PHP Mess Detector
 test-phpmd:
-	docker/exec vendor/bin/phpmd src ansi phpmd-ruleset.xml
+	docker/exec vendor/bin/phpmd analyze --format=ansi --ruleset=phpmd.yml src
 
 # Execute PHPUnit
 test-phpunit:
