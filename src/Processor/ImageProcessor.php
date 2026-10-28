@@ -39,7 +39,7 @@ final class ImageProcessor
         bool $outputAvif = false,
         bool $outputWebp = false,
     ): string {
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($path, \PATHINFO_EXTENSION));
 
         if ('gif' === $extension) {
             return $this->processAnimated($path, $params, $outputWebp);
@@ -55,7 +55,7 @@ final class ImageProcessor
                 'source' => new Filesystem($this->adapter),
                 'source_path_prefix' => \dirname($path),
                 'cache' => new Filesystem($this->adapter),
-                'cache_path_prefix' => \dirname(\dirname($path)) . '/cache',
+                'cache_path_prefix' => \dirname($path, 2) . '/cache',
                 'watermarks' => new Filesystem($this->urlFilesystemAdapter),
                 'driver' => 'imagick',
             ],
@@ -64,21 +64,21 @@ final class ImageProcessor
         $quality = match (true) {
             $outputAvif => $this->avifCompression,
             $outputWebp => $this->webpCompression,
-            default     => $this->jpegCompression,
+            default => $this->jpegCompression,
         };
         $glideParams = [...$params->toArray(), 'q' => $quality];
 
         $glideParams['fm'] = match (true) {
             $outputAvif => 'avif',
             $outputWebp => 'webp',
-            default     => 'jpg', // Always JPEG in fallback
+            default => 'jpg', // Always JPEG in fallback
         };
 
         $this->logger->info(
             'Process image: {path} with params {params}',
             [
                 'path' => $path,
-                'params' => json_encode($glideParams, flags: JSON_THROW_ON_ERROR),
+                'params' => json_encode($glideParams, flags: \JSON_THROW_ON_ERROR),
             ]
         );
 
@@ -98,7 +98,7 @@ final class ImageProcessor
             $color = $pixel->getColor();
             $imagick->clear();
 
-            return sprintf('#%02x%02x%02x', $color['r'], $color['g'], $color['b']);
+            return \sprintf('#%02x%02x%02x', $color['r'], $color['g'], $color['b']);
         } catch (\Throwable) {
             return null;
         }
@@ -152,15 +152,15 @@ final class ImageProcessor
         $imagick->clear();
 
         $outputExtension = true === $outputWebp ? 'webp' : 'gif';
-        $basename = pathinfo($path, PATHINFO_FILENAME) . '.' . $outputExtension;
-        $cachePath = \dirname(\dirname($path)) . '/cache/' . $basename;
+        $basename = pathinfo($path, \PATHINFO_FILENAME) . '.' . $outputExtension;
+        $cachePath = \dirname($path, 2) . '/cache/' . $basename;
         $this->adapter->write($cachePath, $blob, new Config());
 
         $this->logger->info(
             'Process animated image: {path} with params {params}',
             [
                 'path' => $path,
-                'params' => json_encode($params->toArray(), flags: JSON_THROW_ON_ERROR),
+                'params' => json_encode($params->toArray(), flags: \JSON_THROW_ON_ERROR),
             ]
         );
 

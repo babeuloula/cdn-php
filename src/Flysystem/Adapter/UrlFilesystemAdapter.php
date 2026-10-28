@@ -28,6 +28,7 @@ final class UrlFilesystemAdapter implements FilesystemAdapter
     {
         try {
             $this->httpFetcher->fetch('https://' . $path);
+
             return true;
         } catch (\RuntimeException) {
             return false;
@@ -54,6 +55,7 @@ final class UrlFilesystemAdapter implements FilesystemAdapter
         return $this->httpFetcher->fetch('https://' . $path);
     }
 
+    /** @return resource */
     public function readStream(string $path)
     {
         throw new \Exception('Not implemented');

@@ -38,7 +38,7 @@ class TestCase extends BaseTestCase
     protected const string TEST_FILENAME_MD5 = '18867d45576d8283d6fabb82406789c8.jpg';
     protected const string TEST_EXTENSION = 'jpg';
     protected const string TEST_ORIGINAL_PATH = 'example.com/original/' . self::TEST_FILENAME_MD5;
-    protected const string TEST_CACHE_PATH = './cache/image.jpg/d2013cfdfb10b251425adf4149a28e50';
+    protected const string TEST_CACHE_PATH = './cache/image.jpg/f97e77f1baaba35c';
     protected const string TEST_GIF_FILENAME = 'image.gif';
     protected const string TEST_GIF_CACHE_PATH = './cache/image.gif';
     protected const string TEST_GIF_WEBP_CACHE_PATH = './cache/image.webp';
@@ -66,7 +66,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $httpFetcherMock = $this->createStub(HttpFetcher::class);
+        $httpFetcherMock = static::createStub(HttpFetcher::class);
 
         $httpFetcherMock
             ->method('fetch')
@@ -134,31 +134,12 @@ class TestCase extends BaseTestCase
 
                     throw new \RuntimeException("URL not mocked: {$url}");
                 },
-            )
-        ;
+            );
 
         $this->container = new Container();
         $this->container->add(HttpFetcher::class, $httpFetcherMock);
         $this->container->add(FilesystemAdapter::class, new InMemoryFilesystemAdapter());
         $this->container->boot();
-    }
-
-    protected function getContainer(string $id): mixed
-    {
-        return $this->container->get($id);
-    }
-
-    protected function getQueryParameters(): string
-    {
-        return '?' . http_build_query(
-            [
-                'w' => 300,
-                'h' => 200,
-                'wu' => static::TEST_WATERMARK_URL,
-                'ws' => 100,
-                'wo' => 100,
-            ],
-        );
     }
 
     protected static function getTestImageContent(): string
@@ -247,5 +228,23 @@ class TestCase extends BaseTestCase
         $animation->clear();
 
         return $content;
+    }
+
+    protected function getContainer(string $id): mixed
+    {
+        return $this->container->get($id);
+    }
+
+    protected function getQueryParameters(): string
+    {
+        return '?' . http_build_query(
+            [
+                'w' => 300,
+                'h' => 200,
+                'wu' => static::TEST_WATERMARK_URL,
+                'ws' => 100,
+                'wo' => 100,
+            ],
+        );
     }
 }

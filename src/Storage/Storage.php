@@ -32,9 +32,9 @@ final class Storage
     {
         $this->logger->debug('Fetching file: {url}', ['url' => $url]);
 
-        $extension = pathinfo($url, PATHINFO_EXTENSION);
+        $extension = pathinfo($url, \PATHINFO_EXTENSION);
         $filename = md5($url) . '.' . $extension;
-        $path = sprintf(
+        $path = \sprintf(
             '%s/original/%s',
             $domain,
             $filename,

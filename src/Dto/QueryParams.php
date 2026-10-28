@@ -41,8 +41,7 @@ final class QueryParams
     ) {
         $this->watermarkUrl = (true === str_contains((string) $watermarkUrl, '://'))
             ? (explode('://', (string) $watermarkUrl)[1] ?? null)
-            : $watermarkUrl
-        ;
+            : $watermarkUrl;
 
         if ($watermarkSize < 0) {
             $watermarkSize = 0;
@@ -65,9 +64,8 @@ final class QueryParams
     }
 
     /** @param array<string, int|string> $query */
-    public static function fromArray(array $query): QueryParams
+    public static function fromArray(array $query): self
     {
-        // phpcs:disable
         return new self(
             empty($query[self::PARAM_WIDTH]) ? 0 : min((int) $query[self::PARAM_WIDTH], self::MAX_DIMENSION),
             empty($query[self::PARAM_HEIGHT]) ? null : min((int) $query[self::PARAM_HEIGHT], self::MAX_DIMENSION),
@@ -77,7 +75,6 @@ final class QueryParams
             empty($query[self::PARAM_WATERMARK_OPACITY]) ? 50 : ((int) $query[self::PARAM_WATERMARK_OPACITY]),
             empty($query[self::PARAM_VERSION]) ? null : ((string) $query[self::PARAM_VERSION]),
         );
-        // phpcs:enable
     }
 
     /** @return array<string, int|string> */

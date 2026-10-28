@@ -34,7 +34,7 @@ final class Cache
         Request $request,
         bool $varyAccept = true,
     ): Response {
-        $lastModified = (new \DateTimeImmutable())->setTimestamp($this->storage->lastModified($path));
+        $lastModified = new \DateTimeImmutable()->setTimestamp($this->storage->lastModified($path));
 
         $contentType = $this->storage->mimeType($path);
         if (true === $supportAvif) {
@@ -62,7 +62,7 @@ final class Cache
             }
         }
         $response->setMaxAge($this->ttl);
-        $response->setExpires((new \DateTimeImmutable())->modify("+$this->ttl seconds"));
+        $response->setExpires(new \DateTimeImmutable()->modify("+$this->ttl seconds"));
         $response->setLastModified($lastModified);
         $response->setEtag(
             md5($path . ':' . $this->storage->fileSize($path) . ':' . $lastModified->getTimestamp()),
@@ -70,7 +70,7 @@ final class Cache
         $response->isNotModified($request);
 
         $response->setCallback(
-            function () use ($path) {
+            function () use ($path): void {
                 // @codeCoverageIgnoreStart
                 $stream = $this->storage->readStream($path);
                 try {

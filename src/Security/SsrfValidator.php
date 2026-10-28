@@ -37,14 +37,14 @@ final class SsrfValidator
     /** @throws SsrfAttemptException */
     public function assertSafe(string $url): void
     {
-        $hostname = (string) parse_url($url, PHP_URL_HOST);
+        $hostname = (string) parse_url($url, \PHP_URL_HOST);
 
         if ('' === $hostname) {
             throw new SsrfAttemptException($url);
         }
 
         // If the hostname is already an IP, validate it directly without DNS resolution
-        if (false !== filter_var($hostname, FILTER_VALIDATE_IP)) {
+        if (false !== filter_var($hostname, \FILTER_VALIDATE_IP)) {
             if (true === $this->isPrivateIp($hostname)) {
                 throw new SsrfAttemptException($url);
             }

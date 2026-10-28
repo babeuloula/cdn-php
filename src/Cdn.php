@@ -81,7 +81,7 @@ final class Cdn
             return $signatureError;
         }
 
-        $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), PATHINFO_EXTENSION));
+        $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), \PATHINFO_EXTENSION));
         $isImage = \in_array($extension, self::IMAGE_EXTENSIONS, true);
 
         $pathProcessor = new PathProcessor($decoder, $isImage);
@@ -220,7 +220,7 @@ final class Cdn
         return match (true) {
             $outputAvif => [true, false],
             $outputWebp => [false, true],
-            default     => [false, false],
+            default => [false, false],
         };
     }
 
@@ -242,6 +242,7 @@ final class Cdn
         if ('' !== $this->forceToken && $request->query->get('token') !== $this->forceToken) {
             return false;
         }
+
         return true;
     }
 
@@ -255,7 +256,7 @@ final class Cdn
             throw new EmptyUriException();
         }
 
-        if (false === filter_var($decoder->getUri(), FILTER_VALIDATE_URL)) {
+        if (false === filter_var($decoder->getUri(), \FILTER_VALIDATE_URL)) {
             throw new InvalidUriException($decoder->getUri());
         }
 
@@ -263,7 +264,7 @@ final class Cdn
             throw new NotAllowedDomainException($decoder->getDomain());
         }
 
-        $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), PATHINFO_EXTENSION));
+        $extension = mb_strtolower(pathinfo($decoder->getImageUrl(), \PATHINFO_EXTENSION));
         $allExtensions = [...self::IMAGE_EXTENSIONS, ...self::STATIC_EXTENSIONS];
         if (false === \in_array($extension, $allExtensions, true)) {
             throw new NotSupportedExtensionException($extension);
@@ -272,7 +273,7 @@ final class Cdn
         if (true === \in_array($extension, self::IMAGE_EXTENSIONS, true)
             && null !== $decoder->getParams()->watermarkUrl
         ) {
-            $watermarkDomain = parse_url('https://' . $decoder->getParams()->watermarkUrl, PHP_URL_HOST);
+            $watermarkDomain = parse_url('https://' . $decoder->getParams()->watermarkUrl, \PHP_URL_HOST);
             if (false === \is_string($watermarkDomain)
                 || false === \in_array($watermarkDomain, $this->allowedDomains, true)
             ) {

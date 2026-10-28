@@ -37,17 +37,6 @@ class CdnTest extends TestCase
         $this->cdn = $this->getContainer(Cdn::class);
     }
 
-    #[DataProvider('methodNotAllowedProvider')]
-    #[Test]
-    public function cantHandleRequest(string $method): void
-    {
-        $request = Request::create(static::TEST_BASE_URI, $method);
-
-        $response = $this->cdn->handleRequest($request);
-
-        static::assertSame(Response::HTTP_METHOD_NOT_ALLOWED, $response->getStatusCode());
-    }
-
     public static function methodNotAllowedProvider(): \Generator
     {
         yield [Request::METHOD_HEAD];
@@ -59,6 +48,17 @@ class CdnTest extends TestCase
         yield [Request::METHOD_OPTIONS];
         yield [Request::METHOD_TRACE];
         yield [Request::METHOD_CONNECT];
+    }
+
+    #[DataProvider('methodNotAllowedProvider')]
+    #[Test]
+    public function cantHandleRequest(string $method): void
+    {
+        $request = Request::create(static::TEST_BASE_URI, $method);
+
+        $response = $this->cdn->handleRequest($request);
+
+        static::assertSame(Response::HTTP_METHOD_NOT_ALLOWED, $response->getStatusCode());
     }
 
     #[Test]

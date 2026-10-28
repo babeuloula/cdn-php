@@ -27,10 +27,10 @@ final class UriDecoder
     public function __construct(private readonly string $uri, private readonly array $domainsAliases = [])
     {
         $this->imageUrl = explode('?', $this->getUri())[0];
-        $this->domain = (string) parse_url($this->getUri(), PHP_URL_HOST);
-        $this->filename = basename((string) parse_url($this->getUri(), PHP_URL_PATH));
+        $this->domain = (string) parse_url($this->getUri(), \PHP_URL_HOST);
+        $this->filename = basename((string) parse_url($this->getUri(), \PHP_URL_PATH));
 
-        parse_str((string) parse_url($this->getUri(), PHP_URL_QUERY), $query);
+        parse_str((string) parse_url($this->getUri(), \PHP_URL_QUERY), $query);
         /** @var array<string, string> $query */
         $this->query = QueryParams::fromArray($query);
     }
@@ -71,7 +71,7 @@ final class UriDecoder
 
     public function getExtension(): string
     {
-        return pathinfo($this->filename, PATHINFO_EXTENSION);
+        return pathinfo($this->filename, \PATHINFO_EXTENSION);
     }
 
     public function getParams(): QueryParams

@@ -299,11 +299,11 @@ https://cdn-php.loc/https://www.mysite.com/image.png?force=true&token=<your-toke
 ## Running Tests
 
 ```bash
-# Execute PHPCS fixer
-make fix-phpcs
+# Execute PHP-CS-Fixer
+make fix-cs
 
-# Execute PHPCS
-make test-phpcs
+# Check code style with PHP-CS-Fixer
+make test-cs
 
 # Execute PHPStan
 make test-phpstan
@@ -320,6 +320,25 @@ make test-security
 # Execute tests suite
 make test
 ```
+
+### Smoke test
+
+`make smoke-test` sends real HTTP requests to a running CDN (local, dev or prod) and checks every feature: resize, crop, WebP/AVIF negotiation, watermark, cache headers, CORS, ETag/304, CSS/JS minification, static passthrough and error codes. Each run uses a unique `v` param, so images are really processed instead of served from the cache.
+
+```bash
+BASE_URL=https://cdn.example.com \
+IMAGE_URL=example.com/image.jpg \
+WATERMARK_URL=example.com/watermark.png \
+CSS_URL=example.com/style.css \
+JS_URL=example.com/app.js \
+SVG_URL=example.com/logo.svg \
+FONT_URL=example.com/font.woff2 \
+make smoke-test
+```
+
+Source URLs must belong to `ALLOWED_DOMAINS`. `BASE_URL` and `IMAGE_URL` are required, the other cases are skipped when their variable is empty. Set `AVIF_ENABLED=false` when AVIF is disabled on the target.
+
+The script exits with a non-zero code on failure and writes a report to `build/smoke-<date>.txt`. Run it before and after a deployment and `diff` both reports to spot regressions.
 
 ## License
 
