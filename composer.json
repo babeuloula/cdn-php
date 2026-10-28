@@ -3,7 +3,7 @@
     "description": "A CDN written in PHP",
     "type": "project",
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.5",
         "ext-imagick": "*",
         "babeuloula/phpunit-coverage-checker": "^1.0",
         "bref/bref": "^3.0.14",

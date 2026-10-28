@@ -100,7 +100,7 @@ In production, secrets are pulled from AWS SSM Parameter Store (see `serverless.
 
 ## Deployment
 
-Deployed to AWS Lambda (PHP 8.4 FPM, Bref framework) with:
+Deployed to AWS Lambda (PHP 8.5 FPM, Bref framework) with:
 - 2048 MB memory, 28-second timeout
 - Imagick Lambda layer
 - Warm-up ping every 5 minutes via EventBridge

@@ -60,9 +60,9 @@ functions:
     main:
         handler: public/index.php
         description: 'CDN PHP'
-        runtime: php-84-fpm
+        runtime: php-85-fpm
         layers:
-            - ${bref-extra:imagick-php-84}
+            - ${bref-extra:imagick-php-85}
         timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
         memorySize: 2048
         events:
