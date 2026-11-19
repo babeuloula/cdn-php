@@ -6,7 +6,7 @@
         "php": ">=8.5",
         "ext-imagick": "*",
         "babeuloula/phpunit-coverage-checker": "^1.0",
-        "bref/bref": "^3.0.14",
+        "bref/bref": "^3.0.17",
         "bref/extra-php-extensions": "^3.0",
         "bref/logger": "^3.0",
         "league/flysystem": "^3.36",
